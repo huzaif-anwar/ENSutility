@@ -25,7 +25,7 @@ def create_db_connection():
     config.read('resources/DB-config-prod.properties')
 
     # Start the JVM
-    jar = os.path.join(os.getcwd(), 'jar', 'ojdbc8.jar')
+    jar = os.path.join(os.getcwd(), '../jar', 'ojdbc8.jar')
     args = '-Djava.class.path=%s' % jar
 
     jvm_path = jpype.getDefaultJVMPath()

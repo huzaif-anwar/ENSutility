@@ -1,11 +1,9 @@
-import os
 import subprocess
 from datetime import datetime
 
-import PrepareUpdateQueries
-from GenerateEPWFFalloutReport import generateExcelFileforFalloutReport
-import GenerateHTMLfile
-from ModifyMDWExcel import checkForMDWFallout
+from utility import PrepareUpdateQueries
+from utility.GenerateEPWFFalloutReport import generateExcelFileforFalloutReport
+from utility.ModifyMDWExcel import checkForMDWFallout
 
 # print start time
 starttime = datetime.now()

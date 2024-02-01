@@ -10,7 +10,7 @@ app = Flask(__name__)
 def generateHTMLReport():
     # GenerateEPWFFalloutReport.generateExcelFileforFalloutReport()
     # Read the Excel file
-    xls = pd.ExcelFile('output.xlsx')
+    xls = pd.ExcelFile('../output.xlsx')
 
     # Get the sheet names
     sheet_names = xls.sheet_names

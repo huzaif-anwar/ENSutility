@@ -26,7 +26,7 @@ def create_db_connection():
     config.read('resources/DB-config-prod.properties')
 
     # Start the JVM
-    jar = os.path.join(os.getcwd(), 'jar', 'ojdbc8.jar')
+    jar = os.path.join(os.getcwd(), '../jar', 'ojdbc8.jar')
     args = '-Djava.class.path=%s' % jar
 
     jvm_path = jpype.getDefaultJVMPath()
@@ -42,7 +42,7 @@ def create_db_connection():
 
 def generateExcelFileforFalloutReport():
     # Create a Pandas Excel writer using XlsxWriter as the engine.
-    writer = pd.ExcelWriter('output.xlsx', engine='xlsxwriter')
+    writer = pd.ExcelWriter('../output.xlsx', engine='xlsxwriter')
     conn=None
     try:
         conn = create_db_connection()

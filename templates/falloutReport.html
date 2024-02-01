@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EPWF Fallout Report Data</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <ol>
+        <li>Approved Payments are taken care off.</li>
+        <li>KENAN payments are awaiting clearance at Oracle AR.</li>
+        <li>Payment’s in Settlement_Completed are take care off.</li>
+        <li>Below batch job are blocked today.</li>
+        <li>Below Potential fallouts are exceeding their baseline
+            <ul>
+                {% for fallout in potential_fallouts %}
+                    <li>
+                        <h7>{{ fallout.heading }} </h7>
+                        <p>Total count: {{ fallout.total_count }} Baseline: {{ fallout.baseline }}</p>
+                        {{ fallout.html_table|safe }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% if specific_sheets[0] != 'Unsuccessful Payments are within their baseline.' %}
+        <li>Below Unsuccessful payments are exceeding their baseline.
+            <ul>
+                {% for fallout in specific_sheets %}
+                    <li>
+                        <h7>{{ fallout.heading }}</h7>
+                        {{ fallout.html_table|safe }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% else %}
+        <li>{{ specific_sheets[0] }}</li>
+        {% endif %}
+        {% if specific_sheets_S[0] != 'Successful Payments are within their baseline.' %}
+        <li>Below successful payments are exceeding their baseline.
+            <ul>
+                {% for fallout in specific_sheets_S %}
+                    <li>
+                        <h7>{{ fallout.heading }}</h7>
+                        {{ fallout.html_table|safe }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% else %}
+        <li>{{ specific_sheets_S[0] }}</li>
+        {% endif %}
+    </ol>
+</body>
+</html>

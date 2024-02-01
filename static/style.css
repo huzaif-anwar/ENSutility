@@ -1,0 +1,39 @@
+table {
+    border-collapse: collapse;
+    table-layout: auto;
+    width: auto;
+}
+
+td, th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid #FFFFFF;
+    padding: 4px;
+    font-size: 14px;
+}
+
+th {
+    background-color: #000000;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background-color: #9F9F9F;
+}
+
+tr:nth-child(odd) {
+    background-color: #D2D2D2;
+}
+
+td.number {
+    text-align: right;
+}
+
+td.string {
+    text-align: left;
+}
+ul {
+    list-style-type: upper-roman;
+        }

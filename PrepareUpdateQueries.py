@@ -22,7 +22,7 @@ def run_query(query, conn):
 def create_db_connection():
     # Load DB config
     config = configparser.ConfigParser()
-    config.read('DB-config-prod.properties')
+    config.read('resources/DB-config-prod.properties')
 
     # Start the JVM
     jar = os.path.join(os.getcwd(), 'jar', 'ojdbc8.jar')
@@ -45,7 +45,7 @@ def generate_update_queries(cbr_report):
         conn = create_db_connection()
 
         queryconfig = configparser.ConfigParser()
-        queryconfig.read('Prepupdatequery.properties')
+        queryconfig.read('resources/Prepupdatequery.properties')
 
         # Define a dictionary with the query names and their corresponding baselines
         queries = [

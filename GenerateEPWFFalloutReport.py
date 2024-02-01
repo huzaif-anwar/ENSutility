@@ -23,7 +23,7 @@ def run_query_and_create_table(query, baseline, conn):
 def create_db_connection():
     # Load DB config
     config = configparser.ConfigParser()
-    config.read('DB-config-prod.properties')
+    config.read('resources/DB-config-prod.properties')
 
     # Start the JVM
     jar = os.path.join(os.getcwd(), 'jar', 'ojdbc8.jar')
@@ -48,7 +48,7 @@ def generateExcelFileforFalloutReport():
         conn = create_db_connection()
 
         queryconfig = configparser.ConfigParser()
-        queryconfig.read('ProdQueries.properties')
+        queryconfig.read('resources/ProdQueries.properties')
 
         # Define a dictionary with the query names and their corresponding baselines
         queries_and_baselines = {

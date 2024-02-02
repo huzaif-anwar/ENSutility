@@ -4,8 +4,6 @@ import jpype
 import jaydebeapi
 import configparser
 
-import PrepareUpdateQueries
-
 
 def run_query_and_create_table(query, baseline, conn):
     curs = conn.cursor()
@@ -26,7 +24,7 @@ def create_db_connection():
     config.read('resources/DB-config-prod.properties')
 
     # Start the JVM
-    jar = os.path.join(os.getcwd(), '../jar', 'ojdbc8.jar')
+    jar = os.path.join(os.getcwd(), 'jar', 'ojdbc8.jar')
     args = '-Djava.class.path=%s' % jar
 
     jvm_path = jpype.getDefaultJVMPath()
@@ -41,8 +39,15 @@ def create_db_connection():
 
 
 def generateExcelFileforFalloutReport():
+    # Check if the file exists
+    if os.path.exists("../ProdSupport_scripts/output.xlsx"):
+        # If it does, delete it
+        os.remove("../ProdSupport_scripts/output.xlsx")
+    else:
+        print("The file does not exist")
+
     # Create a Pandas Excel writer using XlsxWriter as the engine.
-    writer = pd.ExcelWriter('../output.xlsx', engine='xlsxwriter')
+    writer = pd.ExcelWriter('../ProdSupport_scripts/output.xlsx', engine='xlsxwriter')
     conn=None
     try:
         conn = create_db_connection()
@@ -80,45 +85,45 @@ def generateExcelFileforFalloutReport():
                 sheet_name = str(query_name)
                 df.to_excel(writer, sheet_name=sheet_name, index=False)
 
-                # Get the xlsxwriter workbook and worksheet objects in order to set the formatting.
-                workbook = writer.book
-                worksheet = writer.sheets[f'{query_name}']
-
-                # Add a header format.
-                header_format = workbook.add_format({
-                    'bold': True,
-                    'text_wrap': True,
-                    'valign': 'top',
-                    'fg_color': '#000000',  # Black background
-                    'font_color': '#FFFFFF',  # White text
-                    'border': 1})
-
-                # Write the column headers with the defined format.
-                for col_num, value in enumerate(df.columns.values):
-                    worksheet.write(0, col_num, str(value), header_format)
-
-                # Add a format. Light gray fill with a dark gray border.
-                format1 = workbook.add_format({'bg_color': '#C0C0C0',
-                                               'border': 1})
-
-                # Add a format. Dark gray fill with a light gray border.
-                format2 = workbook.add_format({'bg_color': '#808080',
-                                               'border': 1})
-
-                # Get the number of rows and columns in the DataFrame.
-                num_rows = len(df.index)
-                num_cols = len(df.columns)
-
-                # Convert the number of columns to Excel column letter.
-                col_letter = chr(ord('A') + num_cols - 1)
-
-                # Apply the formats to alternate rows and used columns.
-                worksheet.conditional_format(f'A2:{col_letter}{num_rows + 1}', {'type': 'formula',
-                                                                                'criteria': '=MOD(ROW(),2)=0',
-                                                                                'format': format1})
-                worksheet.conditional_format(f'A2:{col_letter}{num_rows + 1}', {'type': 'formula',
-                                                                                'criteria': '=MOD(ROW(),2)=1',
-                                                                                'format': format2})
+                # # Get the xlsxwriter workbook and worksheet objects in order to set the formatting.
+                # workbook = writer.book
+                # worksheet = writer.sheets[f'{query_name}']
+                #
+                # # Add a header format.
+                # header_format = workbook.add_format({
+                #     'bold': True,
+                #     'text_wrap': True,
+                #     'valign': 'top',
+                #     'fg_color': '#000000',  # Black background
+                #     'font_color': '#FFFFFF',  # White text
+                #     'border': 1})
+                #
+                # # Write the column headers with the defined format.
+                # for col_num, value in enumerate(df.columns.values):
+                #     worksheet.write(0, col_num, str(value), header_format)
+                #
+                # # Add a format. Light gray fill with a dark gray border.
+                # format1 = workbook.add_format({'bg_color': '#C0C0C0',
+                #                                'border': 1})
+                #
+                # # Add a format. Dark gray fill with a light gray border.
+                # format2 = workbook.add_format({'bg_color': '#808080',
+                #                                'border': 1})
+                #
+                # # Get the number of rows and columns in the DataFrame.
+                # num_rows = len(df.index)
+                # num_cols = len(df.columns)
+                #
+                # # Convert the number of columns to Excel column letter.
+                # col_letter = chr(ord('A') + num_cols - 1)
+                #
+                # # Apply the formats to alternate rows and used columns.
+                # worksheet.conditional_format(f'A2:{col_letter}{num_rows + 1}', {'type': 'formula',
+                #                                                                 'criteria': '=MOD(ROW(),2)=0',
+                #                                                                 'format': format1})
+                # worksheet.conditional_format(f'A2:{col_letter}{num_rows + 1}', {'type': 'formula',
+                #                                                                 'criteria': '=MOD(ROW(),2)=1',
+                #                                                                 'format': format2})
 
     except Exception as e:
         print(f"An error occurred: {e}")

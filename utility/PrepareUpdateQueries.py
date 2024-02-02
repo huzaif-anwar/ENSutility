@@ -25,7 +25,7 @@ def create_db_connection():
     config.read('resources/DB-config-prod.properties')
 
     # Start the JVM
-    jar = os.path.join(os.getcwd(), '../jar', 'ojdbc8.jar')
+    jar = os.path.join(os.getcwd(), 'jar', 'ojdbc8.jar')
     args = '-Djava.class.path=%s' % jar
 
     jvm_path = jpype.getDefaultJVMPath()
@@ -157,11 +157,17 @@ def generate_update_queries(cbr_report):
                             update_query_2 = f"update EPWF.POST_ALLC set BILL_APPL_ACCT_ID='{new_billing_acct_id}',BILL_APPL_CD='ENS' where PAYMENT_ID ={payment_id};"
                             print(update_query_1)
                             print(update_query_2)
+        else:
+            print("No Invalid parameter found")
+        df = pd.read_excel(excel_path)
+        # Check if 'POST_STUS_MSG_TXT' column contains 'input string'
         if df['POST_STUS_MSG_TXT'].str.contains('input string').any():
             payment_ids = df.loc[df['POST_STUS_MSG_TXT'].str.contains('input string'), 'PAYMENT_ID'].values
             for payment_id in payment_ids:
                 query = f"update payment set CREATED_USER_NM='4500014',PAYMENT_STATUS_CD='Settlement_Completed' where PAYMENT_ID in ({payment_id});"
                 print(query)
+        else:
+            print("No input string found")
 
     except Exception as e:
         print(f"An error occurred: {e}")

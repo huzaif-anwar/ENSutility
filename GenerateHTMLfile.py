@@ -10,7 +10,7 @@ app = Flask(__name__)
 def generateHTMLReport():
     # GenerateEPWFFalloutReport.generateExcelFileforFalloutReport()
     # Read the Excel file
-    xls = pd.ExcelFile('../output.xlsx')
+    xls = pd.ExcelFile('output.xlsx')
 
     # Get the sheet names
     sheet_names = xls.sheet_names
@@ -125,6 +125,7 @@ def generateHTMLReport():
         else:
             # If none of the specific sheets are present, append a one line string to the list
             specific_sheets_S.append('Successful Payments are within their baseline.')
+
 
     # Render the HTML page
     return render_template('falloutReport.html', potential_fallouts=potential_fallouts, specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S)

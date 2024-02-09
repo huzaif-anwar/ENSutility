@@ -21,8 +21,9 @@ generate_data_for_report()
 # print end time
 endtime = datetime.now()
 print("End time: ", endtime)
-# print total time taken
-print("Total time taken: ", starttime - endtime)
+# print total time taken in minutes
+total_time = (endtime - starttime).total_seconds() / 60
+print("Total time taken: ", total_time, "minutes")
 # Path to the Python interpreter in your virtual environment
 python_path = "C:/Users/ac65760/PycharmProjects/ProdSupport_scripts/venv/Scripts/python.exe"
 

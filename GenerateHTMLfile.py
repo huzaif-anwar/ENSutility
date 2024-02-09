@@ -57,40 +57,40 @@ def generateHTMLReport():
         # If the sheet is a potential fallout, add it to the potential fallouts list
         if 'Capture_Requested' in sheet_name:
             sheet_data[
-                'heading'] = 'Capture_Requested for more than 12 hours : (@Team PayTwo, please take care of these payments)'
+                'heading'] = 'Capture_Requested for more than 12 hours : (@TeamPayTwo, please take care of these payments)'
             sheet_data['baseline'] = '0'
             potential_fallouts.append(sheet_data)
         if 'Capture_Ready' in sheet_name:
             sheet_data[
-                'heading'] = 'Payments were not processed which are in Capture_Ready : (@Team PayTwo, please take care of these payments)'
+                'heading'] = 'Payments were not processed which are in Capture_Ready : (@TeamPayTwo, please take care of these payments)'
             sheet_data['baseline'] = '0'
             potential_fallouts.append(sheet_data)
         if 'Posting_Pending' in sheet_name:
             sheet_data[
-                'heading'] = 'Posting_Pending for more than 15 days : (@Team PayTwo, please take care of these payments)'
+                'heading'] = 'Posting_Pending for more than 15 days : (@TeamPayTwo, please take care of these payments)'
             sheet_data['baseline'] = '40000'
             potential_fallouts.append(sheet_data)
         if 'Posting_Requested' in sheet_name:
             sheet_data[
-                'heading'] = 'Posting_Requested for more than 10 days : (@Team PayTwo, please take care of these payments)'
+                'heading'] = 'Posting_Requested for more than 10 days : (@TeamPayTwo, please take care of these payments)'
             sheet_data['baseline'] = '10000'
             potential_fallouts.append(sheet_data)
         if 'Settlement_Completed' in sheet_name:
             sheet_data[
-                'heading'] = 'Settlement_Completed more than 12 hours: (@Team PayTwo, please take care of these payments)'
+                'heading'] = 'Settlement_Completed more than 12 hours: (@TeamPayTwo, please take care of these payments)'
             sheet_data['baseline'] = '2000'
             potential_fallouts.append(sheet_data)
         if 'Settlement_Pending' in sheet_name:
             sheet_data[
-                'heading'] = 'Settlement_Pending more than 5 days : (@Team PayTwo, please take care of these payments)'
+                'heading'] = 'Settlement_Pending more than 5 days : (@TeamPayTwo, please take care of these payments)'
             sheet_data['baseline'] = '0'
             potential_fallouts.append(sheet_data)
         if 'XCASH' in sheet_name:
-            sheet_data['heading'] = f'Posting_Requested XCASH Payments today’s count: {sheet_data["total_count"]}'
+            sheet_data['heading'] = f'Posting_Requested XCASH Payments today’s count: {sheet_data["total_count"]}.'
             sheet_data['baseline'] = '0'
             potential_fallouts.append(sheet_data)
         if 'Pending_Correction' in sheet_name:
-            sheet_data['heading'] = f'Payments in Pending_Correction today’s count is {sheet_data["total_count"]}'
+            sheet_data['heading'] = f'Payments in Pending_Correction today’s count is {sheet_data["total_count"]}.'
             sheet_data['baseline'] = '0'
             potential_fallouts.append(sheet_data)
 ##############################################################################################################

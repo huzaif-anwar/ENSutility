@@ -8,7 +8,7 @@ def checkForMDWFallout(path):
     downloads_folder = os.path.expanduser('~\\Downloads\\')
     excel_path = os.path.join(downloads_folder, input_file_name)
     file_name = os.path.basename(excel_path)
-    print(file_name)
+    # print(file_name)
     df = pd.read_csv(excel_path)
 
     # code to get the count and compare with its threshold

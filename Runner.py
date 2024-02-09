@@ -10,8 +10,8 @@ from utility.ModifyMDWExcel import checkForMDWFallout
 def generate_data_for_report():
     print("Please ensure the MDW Fallout report and CBR Report are downloaded in the downloads folder.")
 
-    cbr_report_file = input("Enter the name of the CBR report file: ")
-    mdw_report_file = input("Enter the name of the MDW fallout file: ")
+    cbr_report_file = input("Enter the name of the CBR report file: ").strip()
+    mdw_report_file = input("Enter the name of the MDW fallout file: ").strip()
 
     # Check if the files exist
     downloads_folder = os.path.expanduser('~\\Downloads\\')

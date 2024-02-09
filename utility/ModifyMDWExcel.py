@@ -5,7 +5,8 @@ import os
 def checkForMDWFallout(path):
     # Load the Excel file and sheet using pandas
     input_file_name = path
-    excel_path = 'C:/Users/ac65760/Downloads/' + input_file_name
+    downloads_folder = os.path.expanduser('~\\Downloads\\')
+    excel_path = os.path.join(downloads_folder, input_file_name)
     file_name = os.path.basename(excel_path)
     print(file_name)
     df = pd.read_csv(excel_path)

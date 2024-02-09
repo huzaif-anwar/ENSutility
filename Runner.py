@@ -1,3 +1,4 @@
+import os
 import subprocess
 from datetime import datetime
 
@@ -7,10 +8,25 @@ from utility.ModifyMDWExcel import checkForMDWFallout
 
 
 def generate_data_for_report():
+    print("Please ensure the MDW Fallout report and CBR Report are downloaded in the downloads folder.")
+
+    cbr_report_file = input("Enter the name of the CBR report file: ")
+    mdw_report_file = input("Enter the name of the MDW fallout file: ")
+
+    # Check if the files exist
+    downloads_folder = os.path.expanduser('~\\Downloads\\')
+
+    # Check if the files exist in the downloads folder
+    if not os.path.isfile(os.path.join(downloads_folder, cbr_report_file)):
+        print(f"The file {cbr_report_file} does not exist in the downloads folder.")
+        return
+    if not os.path.isfile(os.path.join(downloads_folder, mdw_report_file)):
+        print(f"The file {mdw_report_file} does not exist in the downloads folder.")
+        return
+
     generateExcelFileforFalloutReport()
-    PrepareUpdateQueries.generate_update_queries(
-        "QWPROD_REPORT_20240202_030000_lxomavmpceap67317068114749301706811474476.xlsx")
-    checkForMDWFallout("QWPROD_EPWF_MDW_FALLOUT_20240201040000_To_20240202040000_202402020540.csv")
+    PrepareUpdateQueries.generate_update_queries(cbr_report_file)
+    checkForMDWFallout(mdw_report_file)
 
 # print start time
 starttime = datetime.now()

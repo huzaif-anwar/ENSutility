@@ -120,7 +120,8 @@ def generate_update_queries(cbr_report):
         print("Loading the Excel file")
         # Load the Excel file and sheet using pandas
         input_file_name = cbr_report
-        excel_path = 'C:/Users/ac65760/Downloads/' + input_file_name
+        downloads_folder = os.path.expanduser('~\\Downloads\\')
+        excel_path = os.path.join(downloads_folder, input_file_name)
         file_name = os.path.basename(excel_path)
         print(file_name)
         df = pd.read_excel(excel_path)

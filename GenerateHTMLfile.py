@@ -22,6 +22,8 @@ def generateHTMLReport():
     specific_sheets = []
     # Create a list to hold the names of the specific sheets for successful payments
     specific_sheets_S = []
+    # Create a list to hold the Blocked_Job data
+    blocked_jobs = []
 
     # Iterate over the sheet names
     for sheet_name in sheet_names:
@@ -53,6 +55,11 @@ def generateHTMLReport():
 
         # Add the sheet name, total count, and HTML table to the data list
         sheet_data = {'sheet_name': sheet_name, 'total_count': total_count, 'html_table': html_table}
+
+        # Check if the sheet is the Blocked_Job sheet
+        if 'Blocked_Job' in sheet_name:
+            # If it is, add its data to the blocked_jobs list
+            blocked_jobs.append({'sheet_name': sheet_name, 'total_count': total_count, 'html_table': html_table})
 
         # If the sheet is a potential fallout, add it to the potential fallouts list
         if 'Capture_Requested' in sheet_name:
@@ -126,9 +133,12 @@ def generateHTMLReport():
             # If none of the specific sheets are present, append a one line string to the list
             specific_sheets_S.append('Successful Payments are within their baseline.')
 
+    if 'Blocked_Job' not in sheet_names:
+        blocked_jobs.append('No batch job blocked today')
+
 
     # Render the HTML page
-    return render_template('falloutReport.html', potential_fallouts=potential_fallouts, specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S)
+    return render_template('falloutReport.html', potential_fallouts=potential_fallouts, specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S, blocked_jobs=blocked_jobs)
 
 
 if __name__ == '__main__':

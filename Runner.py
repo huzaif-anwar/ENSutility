@@ -25,8 +25,11 @@ def generate_data_for_report():
         print(f"The file {mdw_report_file} does not exist in the downloads folder.")
         return
 
+    print("Generating the report...")
     generateExcelFileforFalloutReport()
+    print("Preparing the update queries...")
     PrepareUpdateQueries.generate_update_queries(cbr_report_file)
+    print("Checking for MDW Fallout...")
     checkForMDWFallout(mdw_report_file)
 
 # print start time

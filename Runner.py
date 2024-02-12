@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from datetime import datetime
 
 from utility import PrepareUpdateQueries
@@ -41,8 +42,8 @@ print("End time: ", endtime)
 total_time = (endtime - starttime).total_seconds() / 60
 print("Total time taken: ", total_time, "minutes")
 # Path to the Python interpreter in your virtual environment
-python_path = "C:/Users/ac65760/PycharmProjects/ProdSupport_scripts/venv/Scripts/python.exe"
-
+# python_path = "C:/Users/ac65760/PycharmProjects/ProdSupport_scripts/venv/Scripts/python.exe"
+python_path = sys.executable
 # Run GenerateHTMLFile.py
 process = subprocess.Popen([python_path, "GenerateHTMLfile.py"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 

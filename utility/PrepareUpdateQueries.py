@@ -67,9 +67,10 @@ def generate_update_queries(cbr_report):
                 if query_name in ['Notation_Batch_Transaction', 'Notification_Batch_Transaction']:
                     # Get the BATCH_TRANSACTION_IDs from the DataFrame
                     batch_transaction_ids = df['BATCH_TRANSACTION_ID'].tolist()
-                    # Generate the update query
-                    update_query = f"update EPWF.BATCH_TRANSACTION set BATCH_STATUS_CD='ManualReviewComplete' where BATCH_TRANSACTION_ID in({','.join(map(str, batch_transaction_ids))});"
-                    print(update_query)
+                    if batch_transaction_ids:
+                        # Generate the update query
+                        update_query = f"update EPWF.BATCH_TRANSACTION set BATCH_STATUS_CD='ManualReviewComplete' where BATCH_TRANSACTION_ID in({','.join(map(str, batch_transaction_ids))});"
+                        print(update_query)
                 elif query_name == 'Settlement_Completed_Stuck':
                     for index, row in df.iterrows():
                         if row['TRANSACTION_TYPE_CD'] == 'Chargeback' and row['BILLING_APPLICATION_CD'] == 'CPE':
@@ -93,7 +94,7 @@ def generate_update_queries(cbr_report):
                                     print(update_query)
                 elif query_name == 'Approved_Payments':
                     payment_ids = df['PAYMENT_ID'].tolist()
-                    if payment_ids is not None:
+                    if payment_ids:
                         print("List of Approved payment_ids : ", payment_ids)
                     for payment_id in payment_ids:
                         life_cycle_query = f"select pi.process_id, pi.PROCESS_INSTANCE_ID, w.work_name as process ,ws.WORK_STATUS_DESC as status , pi.CREATE_DT from process_instance pi, work w ,work_status ws where pi.master_request_id='{payment_id}' and pi.process_id = w.work_id and pi.status_cd = ws.WORK_STATUS_ID order by pi.PROCESS_INSTANCE_ID asc"

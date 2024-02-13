@@ -9,8 +9,9 @@ from utility.ModifyMDWExcel import checkForMDWFallout
 
 
 def generate_data_for_report():
-    print("Please ensure the MDW Fallout report and CBR Report are downloaded in the downloads folder.")
+    print("Please ensure the EPWF & MDW Fallout report and CBR Report are downloaded in the downloads folder.")
 
+    epwf_report_file = input("Enter the name of the EPWF report file: ").strip()
     cbr_report_file = input("Enter the name of the CBR report file: ").strip()
     mdw_report_file = input("Enter the name of the MDW fallout file: ").strip()
 
@@ -24,6 +25,12 @@ def generate_data_for_report():
     if not os.path.isfile(os.path.join(downloads_folder, mdw_report_file)):
         print(f"The file {mdw_report_file} does not exist in the downloads folder.")
         return
+    if not os.path.isfile(os.path.join(downloads_folder, epwf_report_file)):
+        print(f"The file {epwf_report_file} does not exist in the downloads folder.")
+        return
+    # Write the PDF file name to a temporary file
+    with open('pdf_file.tmp', 'w') as f:
+        f.write(epwf_report_file)
 
     print("Generating the report...")
     generateExcelFileforFalloutReport()
@@ -31,6 +38,7 @@ def generate_data_for_report():
     PrepareUpdateQueries.generate_update_queries(cbr_report_file)
     print("Checking for MDW Fallout...")
     checkForMDWFallout(mdw_report_file)
+
 
 # print start time
 starttime = datetime.now()

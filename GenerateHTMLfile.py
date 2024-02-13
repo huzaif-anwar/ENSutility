@@ -1,7 +1,11 @@
+import os
+from bs4 import BeautifulSoup
+
 from flask import Flask, render_template
 import pandas as pd
 import numpy as np
 
+from utility.PDFToDOCX import pdf_to_docx, docx_to_html
 
 app = Flask(__name__)
 
@@ -136,9 +140,41 @@ def generateHTMLReport():
     if 'Blocked_Job' not in sheet_names:
         blocked_jobs.append('No batch job blocked today')
 
+    # Add content of EPWF Fallout Report pdf to the HTML page
+    # Read the PDF file name from the temporary file
+    with open('pdf_file.tmp', 'r') as f:
+        pdf_file = f.read().strip()
+    # Define the downloads folder
+    downloads_folder = os.path.expanduser('~\\Downloads\\')
+    # Define the full path to the PDF file
+    pdf_file_path = os.path.join(downloads_folder, pdf_file)
+
+    # Convert the PDF to DOCX
+    docx_path = pdf_to_docx(pdf_file_path)
+
+    # Convert the DOCX to HTML
+    html_content = docx_to_html(docx_path)
+
+    # Parse the HTML with BeautifulSoup
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # Find the first <p> tag and add the 'main-heading' class to it
+    soup.find('p')['class'] = 'main-heading'
+
+    # Find the next <p> tags before the table and add the 'secondary-heading' class to them
+    for p in soup.find_all('p')[1:]:
+        if p.find_next_sibling('table'):
+            p['class'] = 'secondary-heading'
+
+    # Convert the BeautifulSoup object back to a string
+    pdf_html = str(soup)
+
+    # Wrap the HTML content in a div
+    pdf_html = f'<div class="pdf-content">{pdf_html}</div>'
+
 
     # Render the HTML page
-    return render_template('falloutReport.html', potential_fallouts=potential_fallouts, specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S, blocked_jobs=blocked_jobs)
+    return render_template('falloutReport.html', potential_fallouts=potential_fallouts, specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S, blocked_jobs=blocked_jobs, pdf_html=pdf_html)
 
 
 if __name__ == '__main__':

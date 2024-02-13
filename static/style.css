@@ -37,3 +37,32 @@ td.string {
 ul {
     list-style-type: upper-roman;
         }
+.pdf-content {
+    text-align: center;
+}
+.pdf-content .main-heading {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    font-size: 30px;
+}
+.pdf-content .secondary-heading {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+}
+.pdf-content table {
+    margin-left: auto;
+    margin-right: auto;
+}
+.pdf-content table, .pdf-content th, .pdf-content td {
+    border: 1px solid black;
+    background-color: white;
+    text-align: center;
+    width: 800px;
+}

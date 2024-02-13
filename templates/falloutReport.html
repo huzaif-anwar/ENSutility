@@ -3,6 +3,8 @@
 <head>
     <title>EPWF Fallout Report Data</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <!-- existing head content... -->
+    {{ centered_css | safe }}
 </head>
 <body>
     <ol>
@@ -59,5 +61,8 @@
         <li>{{ specific_sheets_S[0] }}</li>
         {% endif %}
     </ol>
+<br>
+<!-- PDF content -->
+{{ pdf_html | safe }}
 </body>
 </html>

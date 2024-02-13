@@ -5,6 +5,7 @@ from flask import Flask, render_template
 import pandas as pd
 import numpy as np
 
+from utility.EmailModule import send_email
 from utility.PDFToDOCX import pdf_to_docx, docx_to_html
 
 app = Flask(__name__)
@@ -38,22 +39,26 @@ def generateHTMLReport():
         total_count = df.iloc[:, 0].sum()
 
         # Generate the HTML table manually
-        html_table = '<table>'
+        html_table = '<table style="border-collapse: collapse; table-layout: auto; width: auto;">'
 
         # Add the headers to the table
-        html_table += '<tr>'
+        html_table += '<tr style="background-color: #000000;">'
         for column in df.columns:
-            html_table += f'<th>{column}</th>'
+            html_table += f'<th style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid #FFFFFF; padding: 4px; font-size: 14px; color: #FFFFFF; text-align: center;">{column}</th>'
         html_table += '</tr>'
 
         # Add the data to the table
-        for row in df.itertuples(index=False):
-            html_table += '<tr>'
+        for i, row in enumerate(df.itertuples(index=False)):
+            if i % 2 == 0:
+                row_color = '#9F9F9F'  # even row
+            else:
+                row_color = '#D2D2D2'  # odd row
+            html_table += f'<tr style="background-color: {row_color};">'
             for cell in row:
                 if np.issubdtype(type(cell), np.number):
-                    html_table += f'<td class="number">{cell}</td>'
+                    html_table += f'<td class="number" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid #FFFFFF; padding: 4px; font-size: 14px; text-align: right;">{cell}</td>'
                 else:
-                    html_table += f'<td class="string">{cell}</td>'
+                    html_table += f'<td class="string" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid #FFFFFF; padding: 4px; font-size: 14px; text-align: left;">{cell}</td>'
             html_table += '</tr>'
         html_table += '</table>'
 
@@ -159,22 +164,35 @@ def generateHTMLReport():
     soup = BeautifulSoup(html_content, 'html.parser')
 
     # Find the first <p> tag and add the 'main-heading' class to it
-    soup.find('p')['class'] = 'main-heading'
+    main_heading = soup.find('p')
+    main_heading['class'] = 'main-heading'
+    main_heading[
+        'style'] = "text-align: center; margin-top: 20px; margin-bottom: 20px; font-weight: bold; font-family: Arial, sans-serif; font-size: 30px;"
 
     # Find the next <p> tags before the table and add the 'secondary-heading' class to them
     for p in soup.find_all('p')[1:]:
         if p.find_next_sibling('table'):
             p['class'] = 'secondary-heading'
+            p[
+                'style'] = "text-align: center; margin-top: 20px; margin-bottom: 20px; font-weight: bold; font-family: Arial, sans-serif; font-size: 15px;"
+
+    # Apply styles to the table elements
+    for table in soup.find_all('table'):
+        table['style'] = "margin-left: auto; margin-right: auto; border-collapse: collapse;"
+    for td in soup.find_all(['td', 'th']):
+        td['style'] = "border: 1px solid black; background-color: white; text-align: center; width: 800px;"
 
     # Convert the BeautifulSoup object back to a string
     pdf_html = str(soup)
 
     # Wrap the HTML content in a div
-    pdf_html = f'<div class="pdf-content">{pdf_html}</div>'
+    pdf_html = f'<div class="pdf-content" style="text-align: center;">{pdf_html}</div>'
 
 
     # Render the HTML page
-    return render_template('falloutReport.html', potential_fallouts=potential_fallouts, specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S, blocked_jobs=blocked_jobs, pdf_html=pdf_html)
+    full_page = render_template('falloutReport.html', potential_fallouts=potential_fallouts, specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S, blocked_jobs=blocked_jobs, pdf_html=pdf_html)
+    # send_email(full_page)
+    return full_page
 
 
 if __name__ == '__main__':

@@ -1,4 +1,6 @@
 import os
+import sys
+
 from bs4 import BeautifulSoup
 
 from flask import Flask, render_template
@@ -191,9 +193,14 @@ def generateHTMLReport():
 
     # Render the HTML page
     full_page = render_template('falloutReport.html', potential_fallouts=potential_fallouts, specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S, blocked_jobs=blocked_jobs, pdf_html=pdf_html)
-    # send_email(full_page)
+    send_email(full_page)
     return full_page
 
+def send_emails_on_start():
+    with app.app_context():
+        generateHTMLReport()
+        sys.exit()  # Terminate the script
 
 if __name__ == '__main__':
+    send_emails_on_start()
     app.run(debug=True)

@@ -1,3 +1,4 @@
+import datetime
 import os
 import pandas as pd
 import jpype
@@ -44,6 +45,13 @@ def generate_update_queries(cbr_report):
     try:
         conn = create_db_connection()
 
+        # Open the file in append mode
+        file = open('../update_queries.txt', 'w')
+
+        # Write the first line to the file
+        today = datetime.date.today()
+        file.write(f'Queries to run in production for {today}\n\n')
+
         queryconfig = configparser.ConfigParser()
         queryconfig.read('resources/Prepupdatequery.properties')
 
@@ -71,6 +79,7 @@ def generate_update_queries(cbr_report):
                         # Generate the update query
                         update_query = f"update EPWF.BATCH_TRANSACTION set BATCH_STATUS_CD='ManualReviewComplete' where BATCH_TRANSACTION_ID in({','.join(map(str, batch_transaction_ids))});"
                         print(update_query)
+                        file.write(update_query + '\n')
                 elif query_name == 'Settlement_Completed_Stuck':
                     for index, row in df.iterrows():
                         if row['TRANSACTION_TYPE_CD'] == 'Chargeback' and row['BILLING_APPLICATION_CD'] == 'CPE':
@@ -81,7 +90,8 @@ def generate_update_queries(cbr_report):
                             print(f"PMT Process date -{row['PAYMENT_PROCESS_DT']} - payment_process_dt")
                             # Generate the update query for each record
                             update_query = f"update payment set payment_status_cd='Posted' where payment_id in ({row['PAYMENT_ID']}) and BILLING_APPLICATION_CD='CPE' and TRANSACTION_TYPE_CD='Chargeback';"
-                            print(update_query)
+                            print('--CPE__' + update_query)
+                            file.write('--CPE__' + update_query + '\n')
                         elif str(row['BILLING_APPLICATION_CD']).startswith('CRIS') and len(
                                 row['BILLING_APPLICATION_ACCNT_ID']) < 13:
                             select_query = f"select * from payment where PAYMENT_CREATE_DT>= SYSDATE -200 and CREATED_DTTM>SYSDATE-200 and BILLING_APPLICATION_ACCNT_ID like '%{row['BILLING_APPLICATION_ACCNT_ID']}%' order by payment_process_dt desc"
@@ -92,6 +102,7 @@ def generate_update_queries(cbr_report):
                                 if len(second_row['BILLING_APPLICATION_ACCNT_ID']) == 13:
                                     update_query = f"update payment set BILLING_APPLICATION_ACCNT_ID = '{second_row['BILLING_APPLICATION_ACCNT_ID']}', LAST_MODIFIED_DTTM = sysdate, LAST_MODIFIED_USER_NM = 'ac65760' where payment_id = {row['PAYMENT_ID']} and BILLING_APPLICATION_ACCNT_ID='{row['BILLING_APPLICATION_ACCNT_ID']}';"
                                     print(update_query)
+                                    file.write(update_query + '\n')
                 elif query_name == 'Approved_Payments':
                     payment_ids = df['PAYMENT_ID'].tolist()
                     if payment_ids:
@@ -114,6 +125,7 @@ def generate_update_queries(cbr_report):
                                     WHERE PAYMENT_ID in ({payment_id});
                                     """
                                 print(update_query)
+                                file.write(update_query + '\n')
                             else:
                                 print(f"Payment ID: {payment_id} has not completed the lifecycle")
                                 print(lifecycle_df[['PROCESS', 'STATUS', 'PROCESS_INSTANCE_ID']].to_string())
@@ -158,7 +170,9 @@ def generate_update_queries(cbr_report):
                             update_query_1 = f"update payment set BILLING_APPLICATION_ACCNT_ID='{new_billing_acct_id}', BILLING_APPLICATION_CD='ENS', DESTINATION_APPLICATION_CD='ENJ', PAYMENT_STATUS_CD='Settlement_Completed' where PAYMENT_ID ={payment_id};"
                             update_query_2 = f"update EPWF.POST_ALLC set BILL_APPL_ACCT_ID='{new_billing_acct_id}',BILL_APPL_CD='ENS' where PAYMENT_ID ={payment_id};"
                             print(update_query_1)
+                            file.write(update_query_1 + '\n')
                             print(update_query_2)
+                            file.write(update_query_2 + '\n')
         else:
             print("No Invalid parameter found")
         df = pd.read_excel(excel_path)
@@ -168,12 +182,15 @@ def generate_update_queries(cbr_report):
             for payment_id in payment_ids:
                 query = f"update payment set CREATED_USER_NM='4500014',PAYMENT_STATUS_CD='Settlement_Completed' where PAYMENT_ID in ({payment_id});"
                 print(query)
+                file.write(query + '\n')
         else:
             print("No input string found")
 
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
+        # Close the file
+        file.close()
         # Close the connection
         if conn is not None:
             conn.close()

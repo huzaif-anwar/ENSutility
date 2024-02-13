@@ -4,6 +4,7 @@ import sys
 from datetime import datetime
 
 from utility import PrepareUpdateQueries
+from utility.EmailModule import send_email_for_update_queries
 from utility.GenerateEPWFFalloutReport import generateExcelFileforFalloutReport
 from utility.ModifyMDWExcel import checkForMDWFallout
 
@@ -45,7 +46,7 @@ starttime = datetime.now()
 print("Start time: ", starttime)
 
 generate_data_for_report()
-
+send_email_for_update_queries()
 # print end time
 endtime = datetime.now()
 print("End time: ", endtime)

@@ -145,7 +145,7 @@ def generateHTMLReport():
             specific_sheets_S.append('Successful Payments are within their baseline.')
 
     if 'Blocked_Job' not in sheet_names:
-        blocked_jobs.append('No batch job blocked today')
+        blocked_jobs.append('Blocked job resolved/No batch job blocked today.')
 
     # Add content of EPWF Fallout Report pdf to the HTML page
     # Read the PDF file name from the temporary file

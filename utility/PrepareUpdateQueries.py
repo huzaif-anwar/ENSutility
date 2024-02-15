@@ -50,7 +50,7 @@ def generate_update_queries(cbr_report):
 
         # Write the first line to the file
         today = datetime.date.today()
-        file.write(f'Queries to run in production for {today}\n\n')
+        file.write(f'Queries to run in production for {today}\r\n\r\n')
 
         queryconfig = configparser.ConfigParser()
         queryconfig.read('resources/Prepupdatequery.properties')
@@ -79,19 +79,30 @@ def generate_update_queries(cbr_report):
                         # Generate the update query
                         update_query = f"update EPWF.BATCH_TRANSACTION set BATCH_STATUS_CD='ManualReviewComplete' where BATCH_TRANSACTION_ID in({','.join(map(str, batch_transaction_ids))});"
                         print(update_query)
-                        file.write(update_query + '\n')
+                        file.write(f"{update_query}\r\n")
                 elif query_name == 'Settlement_Completed_Stuck':
                     for index, row in df.iterrows():
                         if row['TRANSACTION_TYPE_CD'] == 'Chargeback' and row['BILLING_APPLICATION_CD'] == 'CPE':
+                            print("CPE - Details to send to CPE team")
                             print(f"{row['BILLING_APPLICATION_ACCNT_ID']} - BTN")
                             print(f"CB ID -{row['PAYMENT_ID']} - PAYMENT_ID")
                             print(f"Original Pmt-{row['ASSOCIATED_PAYMENT_ID']} -ASSOCIATED_PAYMENT_ID")
                             print(f"PMT amt- {row['PAYMENT_AMT']} - payment_amt")
                             print(f"PMT Process date -{row['PAYMENT_PROCESS_DT']} - payment_process_dt")
+                            # Append to the text file
+                            with open('../cpe_email_content.txt', 'a') as file:
+                                if os.path.getsize('../cpe_email_content.txt') == 0:
+                                    file.write("CPE - Details to send to CPE team\r\n")
+                                file.write(f"{row['BILLING_APPLICATION_ACCNT_ID']} - BTN\r\n")
+                                file.write(f"CB ID -{row['PAYMENT_ID']} - PAYMENT_ID\r\n")
+                                file.write(f"Original Pmt-{row['ASSOCIATED_PAYMENT_ID']} -ASSOCIATED_PAYMENT_ID\r\n")
+                                file.write(f"PMT amt- {row['PAYMENT_AMT']} - payment_amt\r\n")
+                                file.write(f"PMT Process date -{row['PAYMENT_PROCESS_DT']} - payment_process_dt\r\n\n")
+
                             # Generate the update query for each record
                             update_query = f"update payment set payment_status_cd='Posted' where payment_id in ({row['PAYMENT_ID']}) and BILLING_APPLICATION_CD='CPE' and TRANSACTION_TYPE_CD='Chargeback';"
-                            print('--CPE__' + update_query)
-                            file.write('--CPE__' + update_query + '\n')
+                            print('--Post confirmation from CPE team-- ' + update_query)
+                            file.write(f'--Post confirmation from CPE team-- {update_query}\r\n')
                         elif str(row['BILLING_APPLICATION_CD']).startswith('CRIS') and len(
                                 row['BILLING_APPLICATION_ACCNT_ID']) < 13:
                             select_query = f"select * from payment where PAYMENT_CREATE_DT>= SYSDATE -200 and CREATED_DTTM>SYSDATE-200 and BILLING_APPLICATION_ACCNT_ID like '%{row['BILLING_APPLICATION_ACCNT_ID']}%' order by payment_process_dt desc"
@@ -102,7 +113,7 @@ def generate_update_queries(cbr_report):
                                 if len(second_row['BILLING_APPLICATION_ACCNT_ID']) == 13:
                                     update_query = f"update payment set BILLING_APPLICATION_ACCNT_ID = '{second_row['BILLING_APPLICATION_ACCNT_ID']}', LAST_MODIFIED_DTTM = sysdate, LAST_MODIFIED_USER_NM = 'ac65760' where payment_id = {row['PAYMENT_ID']} and BILLING_APPLICATION_ACCNT_ID='{row['BILLING_APPLICATION_ACCNT_ID']}';"
                                     print(update_query)
-                                    file.write(update_query + '\n')
+                                    file.write(f"{update_query}\r\n")
                 elif query_name == 'Approved_Payments':
                     payment_ids = df['PAYMENT_ID'].tolist()
                     if payment_ids:
@@ -125,7 +136,7 @@ def generate_update_queries(cbr_report):
                                     WHERE PAYMENT_ID in ({payment_id});
                                     """
                                 print(update_query)
-                                file.write(update_query + '\n')
+                                file.write(f"{update_query}\r\n")
                             else:
                                 print(f"Payment ID: {payment_id} has not completed the lifecycle")
                                 print(lifecycle_df[['PROCESS', 'STATUS', 'PROCESS_INSTANCE_ID']].to_string())
@@ -170,9 +181,9 @@ def generate_update_queries(cbr_report):
                             update_query_1 = f"update payment set BILLING_APPLICATION_ACCNT_ID='{new_billing_acct_id}', BILLING_APPLICATION_CD='ENS', DESTINATION_APPLICATION_CD='ENJ', PAYMENT_STATUS_CD='Settlement_Completed' where PAYMENT_ID ={payment_id};"
                             update_query_2 = f"update EPWF.POST_ALLC set BILL_APPL_ACCT_ID='{new_billing_acct_id}',BILL_APPL_CD='ENS' where PAYMENT_ID ={payment_id};"
                             print(update_query_1)
-                            file.write(update_query_1 + '\n')
+                            file.write(f'{update_query_1}\r\n')
                             print(update_query_2)
-                            file.write(update_query_2 + '\n')
+                            file.write(f'{update_query_2}\r\n')
         else:
             print("No Invalid parameter found")
         df = pd.read_excel(excel_path)
@@ -182,7 +193,7 @@ def generate_update_queries(cbr_report):
             for payment_id in payment_ids:
                 query = f"update payment set CREATED_USER_NM='4500014',PAYMENT_STATUS_CD='Settlement_Completed' where PAYMENT_ID in ({payment_id});"
                 print(query)
-                file.write(query + '\n')
+                file.write(f"{query}\r\n")
         else:
             print("No input string found")
 

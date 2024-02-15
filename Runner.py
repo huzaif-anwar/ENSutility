@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 
 from utility import PrepareUpdateQueries
-from utility.EmailModule import send_email_for_update_queries
+from utility.EmailModule import send_email_for_update_queries, send_cpe_email
 from utility.GenerateEPWFFalloutReport import generateExcelFileforFalloutReport
 from utility.ModifyMDWExcel import checkForMDWFallout
 
@@ -47,6 +47,13 @@ print("Start time: ", starttime)
 
 generate_data_for_report()
 send_email_for_update_queries()
+# Check if the file is present and not empty
+if os.path.exists('cpe_email_content.txt') and os.path.getsize('cpe_email_content.txt') > 0:
+    # Call the send_email method
+    send_cpe_email('cpe_email_content.txt')
+
+    # Delete the file
+    os.remove('cpe_email_content.txt')
 # print end time
 endtime = datetime.now()
 print("End time: ", endtime)

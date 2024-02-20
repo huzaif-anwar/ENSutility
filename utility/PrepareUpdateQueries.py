@@ -97,7 +97,7 @@ def generate_update_queries(cbr_report):
                                 file.write(f"CB ID -{row['PAYMENT_ID']} - PAYMENT_ID\r\n")
                                 file.write(f"Original Pmt-{row['ASSOCIATED_PAYMENT_ID']} -ASSOCIATED_PAYMENT_ID\r\n")
                                 file.write(f"PMT amt- {row['PAYMENT_AMT']} - payment_amt\r\n")
-                                file.write(f"PMT Process date -{row['PAYMENT_PROCESS_DT']} - payment_process_dt\r\n\n")
+                                file.write(f"PMT Process date -{row['PAYMENT_PROCESS_DT']} - payment_process_dt\r\n\r\n")
 
                             # Generate the update query for each record
                             update_query = f"update payment set payment_status_cd='Posted' where payment_id in ({row['PAYMENT_ID']}) and BILLING_APPLICATION_CD='CPE' and TRANSACTION_TYPE_CD='Chargeback';"
@@ -105,7 +105,7 @@ def generate_update_queries(cbr_report):
                             file.write(f'--Post confirmation from CPE team-- {update_query}\r\n')
                         elif str(row['BILLING_APPLICATION_CD']).startswith('CRIS') and len(
                                 row['BILLING_APPLICATION_ACCNT_ID']) < 13:
-                            select_query = f"select * from payment where PAYMENT_CREATE_DT>= SYSDATE -200 and CREATED_DTTM>SYSDATE-200 and BILLING_APPLICATION_ACCNT_ID like '%{row['BILLING_APPLICATION_ACCNT_ID']}%' order by payment_process_dt desc"
+                            select_query = f"select * from payment where PAYMENT_CREATE_DT>= SYSDATE -400 and CREATED_DTTM>SYSDATE-400 and BILLING_APPLICATION_ACCNT_ID like '%{row['BILLING_APPLICATION_ACCNT_ID']}%' order by payment_process_dt desc"
                             # print(select_query)
                             select_df = run_query(select_query, conn)
                             if select_df is not None and len(select_df) > 1:
@@ -114,6 +114,11 @@ def generate_update_queries(cbr_report):
                                     update_query = f"update payment set BILLING_APPLICATION_ACCNT_ID = '{second_row['BILLING_APPLICATION_ACCNT_ID']}', LAST_MODIFIED_DTTM = sysdate, LAST_MODIFIED_USER_NM = 'ac65760' where payment_id = {row['PAYMENT_ID']} and BILLING_APPLICATION_ACCNT_ID='{row['BILLING_APPLICATION_ACCNT_ID']}';"
                                     print(update_query)
                                     file.write(f"{update_query}\r\n")
+                            else:
+                                update_query = f"update payment set payment_status_cd='Pending_Correction' ,LAST_MODIFIED_DTTM = sysdate, LAST_MODIFIED_USER_NM = 'AC65760' where  payment_id = {row['PAYMENT_ID']} and BILLING_APPLICATION_ACCNT_ID='{row['BILLING_APPLICATION_ACCNT_ID']}';"
+                                print(update_query)
+                                file.write(f"{update_query}\r\n")
+
                 elif query_name == 'Approved_Payments':
                     payment_ids = df['PAYMENT_ID'].tolist()
                     if payment_ids:

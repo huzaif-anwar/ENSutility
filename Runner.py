@@ -20,25 +20,27 @@ def generate_data_for_report():
     downloads_folder = os.path.expanduser('~\\Downloads\\')
 
     # Check if the files exist in the downloads folder
-    if not os.path.isfile(os.path.join(downloads_folder, cbr_report_file)):
-        print(f"The file {cbr_report_file} does not exist in the downloads folder.")
-        return
-    if not os.path.isfile(os.path.join(downloads_folder, mdw_report_file)):
-        print(f"The file {mdw_report_file} does not exist in the downloads folder.")
-        return
     if not os.path.isfile(os.path.join(downloads_folder, epwf_report_file)):
         print(f"The file {epwf_report_file} does not exist in the downloads folder.")
         return
-    # Write the PDF file name to a temporary file
-    with open('pdf_file.tmp', 'w') as f:
-        f.write(epwf_report_file)
-
-    print("Generating the report...")
-    generateExcelFileforFalloutReport()
-    print("Preparing the update queries...")
-    PrepareUpdateQueries.generate_update_queries(cbr_report_file)
-    print("Checking for MDW Fallout...")
-    checkForMDWFallout(mdw_report_file)
+    else:
+        print("Generating the report...")
+        generateExcelFileforFalloutReport()
+        # Write the PDF file name to a temporary file
+        with open('pdf_file.tmp', 'w') as f:
+            f.write(epwf_report_file)
+    if not os.path.isfile(os.path.join(downloads_folder, cbr_report_file)):
+        print(f"The file {cbr_report_file} does not exist in the downloads folder.")
+        return
+    else:
+        print("Preparing the update queries...")
+        PrepareUpdateQueries.generate_update_queries(cbr_report_file)
+    if not os.path.isfile(os.path.join(downloads_folder, mdw_report_file)):
+        print(f"The file {mdw_report_file} does not exist in the downloads folder.")
+        return
+    else:
+        print("Checking for MDW Fallout...")
+        checkForMDWFallout(mdw_report_file)
 
 
 # print start time

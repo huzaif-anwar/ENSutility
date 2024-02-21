@@ -78,7 +78,7 @@ def generateHTMLReport():
                 'heading'] = 'Capture_Requested for more than 12 hours : (@TeamPayTwo, please take care of these payments)'
             sheet_data['baseline'] = '0'
             potential_fallouts.append(sheet_data)
-        if 'Capture_Ready' in sheet_name:
+        if 'Capture_Ready' == sheet_name:
             sheet_data[
                 'heading'] = 'Payments were not processed which are in Capture_Ready : (@TeamPayTwo, please take care of these payments)'
             sheet_data['baseline'] = '0'

@@ -35,6 +35,7 @@ def generate_data_for_report():
     else:
         print("Preparing the update queries...")
         PrepareUpdateQueries.generate_update_queries(cbr_report_file)
+        send_email_for_update_queries()
     if not os.path.isfile(os.path.join(downloads_folder, mdw_report_file)):
         print(f"The file {mdw_report_file} does not exist in the downloads folder.")
         return
@@ -48,7 +49,6 @@ starttime = datetime.now()
 print("Start time: ", starttime)
 
 generate_data_for_report()
-send_email_for_update_queries()
 # Check if the file is present and not empty
 if os.path.exists('cpe_email_content.txt') and os.path.getsize('cpe_email_content.txt') > 0:
     # Call the send_email method

@@ -23,7 +23,6 @@ def generateHTMLReport():
     sheet_names = xls.sheet_names
 
     # Create a list to hold the data for each sheet
-    data = []
     potential_fallouts = []
     # Create a list to hold the names of the specific sheets for unsuccessful payments
     specific_sheets = []
@@ -111,7 +110,7 @@ def generateHTMLReport():
             sheet_data['heading'] = f'Payments in Pending_Correction today’s count is {sheet_data["total_count"]}.'
             sheet_data['baseline'] = '0'
             potential_fallouts.append(sheet_data)
-##############################################################################################################
+        ##############################################################################################################
         # Define the specific sheet names
         specific_sheet_names = {'Denied': '1.5k', 'Capture_Error': '2k', 'Session_Error': '1k'}
 
@@ -127,9 +126,9 @@ def generateHTMLReport():
         else:
             # If none of the specific sheets are present, append a one line string to the list
             specific_sheets.append('Unsuccessful Payments are within their baseline.')
-#######################################################################################################################
+        #######################################################################################################################
         # Define the specific sheet names
-        specific_sheet_names_S ={'Capture_Ready_suc': '90K', 'Posted': '250K'}
+        specific_sheet_names_S = {'Capture_Ready_suc': '90K', 'Posted_suc': '250K'}
 
         # Check if any of the specific sheet names are present
         if any(specific_sheet_S in sheet_names for specific_sheet_S in specific_sheet_names_S.keys()):
@@ -137,6 +136,8 @@ def generateHTMLReport():
             for specific_sheet_S, baseline in specific_sheet_names_S.items():
                 if specific_sheet_S in sheet_name:
                     sheet_data = {'sheet_name': specific_sheet_S, 'total_count': total_count, 'html_table': html_table}
+                    # Remove "_suc" from the sheet name before appending it to the HTML file
+                    specific_sheet_S = specific_sheet_S.replace('_suc', '')
                     sheet_data[
                         'heading'] = f'Below {specific_sheet_S} payments are exceeding their baseline. (Baseline: {baseline}, Today’s Count : {sheet_data["total_count"]})'
                     specific_sheets_S.append(sheet_data)
@@ -190,16 +191,19 @@ def generateHTMLReport():
     # Wrap the HTML content in a div
     pdf_html = f'<div class="pdf-content" style="text-align: center;">{pdf_html}</div>'
 
-
     # Render the HTML page
-    full_page = render_template('falloutReport.html', potential_fallouts=potential_fallouts, specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S, blocked_jobs=blocked_jobs, pdf_html=pdf_html)
+    full_page = render_template('falloutReport.html', potential_fallouts=potential_fallouts,
+                                specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S,
+                                blocked_jobs=blocked_jobs, pdf_html=pdf_html)
     send_email(full_page)
     return full_page
+
 
 def send_emails_on_start():
     with app.app_context():
         generateHTMLReport()
         sys.exit()  # Terminate the script
+
 
 if __name__ == '__main__':
     send_emails_on_start()

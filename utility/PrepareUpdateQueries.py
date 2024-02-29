@@ -45,7 +45,7 @@ def generate_update_queries(cbr_report):
     try:
         conn = create_db_connection()
 
-        # Open the file in append mode
+        # Open the file in write mode
         file = open('../update_queries.txt', 'w')
 
         # Write the first line to the file
@@ -146,67 +146,72 @@ def generate_update_queries(cbr_report):
                                 print(f"Payment ID: {payment_id} has not completed the lifecycle")
                                 print(lifecycle_df[['PROCESS', 'STATUS', 'PROCESS_INSTANCE_ID']].to_string())
 
-        print("Loading the Excel file")
-        # Load the Excel file and sheet using pandas
-        input_file_name = cbr_report
-        downloads_folder = os.path.expanduser('~\\Downloads\\')
-        excel_path = os.path.join(downloads_folder, input_file_name)
-        file_name = os.path.basename(excel_path)
-        print(file_name)
-        df = pd.read_excel(excel_path)
+        # Check if the cbr_report is None or empty
+        if not cbr_report:
+            print("Analysis of CBR Report is skipped as no CBR report file provided.")
+        else:
+            print("Loading the Excel file")
+            # Load the Excel file and sheet using pandas
+            input_file_name = cbr_report
+            downloads_folder = os.path.expanduser('~\\Downloads\\')
+            excel_path = os.path.join(downloads_folder, input_file_name)
+            file_name = os.path.basename(excel_path)
+            print(file_name)
+            df = pd.read_excel(excel_path)
 
-        # Check if 'POST_STUS_MSG_TXT' column contains 'Invalid Parameters'
-        if df['POST_STUS_MSG_TXT'].str.contains('Invalid parameter').any():
-            # Get the respective payment_ids
-            payment_ids = df.loc[df['POST_STUS_MSG_TXT'].str.contains('Invalid parameter'), 'PAYMENT_ID'].values
-            # Run your SQL query for each payment_id
-            for payment_id in payment_ids:
-                query = f"select * from post_allc where PAYMENT_ID in ({payment_id})"
-                # print(query)
-                df = run_query(query, conn)
-                # If data is present
-                if df is not None and not df.empty:
-                    # Get the BILL_APPL_ACCT_ID
-                    bill_appl_acct_id = df['BILL_APPL_ACCT_ID'].values[0]
-                    # Run the second query
-                    second_query = f"select * from EPWF.CRIS_ENS_MAPPING_REF where CRIS_BTN='{bill_appl_acct_id}'"
-                    # print(second_query)
-                    second_df = run_query(second_query, conn)
-                    # If data is present in the second query
-                    if second_df is not None and not second_df.empty:
-                        # Run the third query
-                        third_query = f"select * from EPWF.PMT_CORRECTION_MAPPING where OLD_BILLING_ACCT_ID='{bill_appl_acct_id}'"
-                        # print(third_query)
-                        third_df = run_query(third_query, conn)
-                        # If data is present in the third query
-                        if third_df is not None and not third_df.empty:
-                            # Get the NEW_BILLING_ACCT_ID
-                            new_billing_acct_id = third_df['NEW_BILLING_ACCT_ID'].values[0]
-                            # Run the update query
-                            update_query_1 = f"update payment set BILLING_APPLICATION_ACCNT_ID='{new_billing_acct_id}', BILLING_APPLICATION_CD='ENS', DESTINATION_APPLICATION_CD='ENJ', PAYMENT_STATUS_CD='Settlement_Completed' where PAYMENT_ID ={payment_id};"
-                            update_query_2 = f"update EPWF.POST_ALLC set BILL_APPL_ACCT_ID='{new_billing_acct_id}',BILL_APPL_CD='ENS' where PAYMENT_ID ={payment_id};"
-                            print(update_query_1)
-                            file.write(f'{update_query_1}\r\n')
-                            print(update_query_2)
-                            file.write(f'{update_query_2}\r\n')
-        else:
-            print("No Invalid parameter found")
-        df = pd.read_excel(excel_path)
-        # Check if 'POST_STUS_MSG_TXT' column contains 'input string'
-        if df['POST_STUS_MSG_TXT'].str.contains('input string').any():
-            payment_ids = df.loc[df['POST_STUS_MSG_TXT'].str.contains('input string'), 'PAYMENT_ID'].values
-            for payment_id in payment_ids:
-                query = f"update payment set CREATED_USER_NM='4500014',PAYMENT_STATUS_CD='Settlement_Completed' where PAYMENT_ID in ({payment_id});"
-                print(query)
-                file.write(f"{query}\r\n")
-        else:
-            print("No input string found")
+            # Check if 'POST_STUS_MSG_TXT' column contains 'Invalid Parameters'
+            if df['POST_STUS_MSG_TXT'].str.contains('Invalid parameter').any():
+                # Get the respective payment_ids
+                payment_ids = df.loc[df['POST_STUS_MSG_TXT'].str.contains('Invalid parameter'), 'PAYMENT_ID'].values
+                # Run your SQL query for each payment_id
+                for payment_id in payment_ids:
+                    query = f"select * from post_allc where PAYMENT_ID in ({payment_id})"
+                    # print(query)
+                    df = run_query(query, conn)
+                    # If data is present
+                    if df is not None and not df.empty:
+                        # Get the BILL_APPL_ACCT_ID
+                        bill_appl_acct_id = df['BILL_APPL_ACCT_ID'].values[0]
+                        # Run the second query
+                        second_query = f"select * from EPWF.CRIS_ENS_MAPPING_REF where CRIS_BTN='{bill_appl_acct_id}'"
+                        # print(second_query)
+                        second_df = run_query(second_query, conn)
+                        # If data is present in the second query
+                        if second_df is not None and not second_df.empty:
+                            # Run the third query
+                            third_query = f"select * from EPWF.PMT_CORRECTION_MAPPING where OLD_BILLING_ACCT_ID='{bill_appl_acct_id}'"
+                            # print(third_query)
+                            third_df = run_query(third_query, conn)
+                            # If data is present in the third query
+                            if third_df is not None and not third_df.empty:
+                                # Get the NEW_BILLING_ACCT_ID
+                                new_billing_acct_id = third_df['NEW_BILLING_ACCT_ID'].values[0]
+                                # Run the update query
+                                update_query_1 = f"update payment set BILLING_APPLICATION_ACCNT_ID='{new_billing_acct_id}', BILLING_APPLICATION_CD='ENS', DESTINATION_APPLICATION_CD='ENJ', PAYMENT_STATUS_CD='Settlement_Completed' where PAYMENT_ID ={payment_id};"
+                                update_query_2 = f"update EPWF.POST_ALLC set BILL_APPL_ACCT_ID='{new_billing_acct_id}',BILL_APPL_CD='ENS' where PAYMENT_ID ={payment_id};"
+                                print(update_query_1)
+                                file.write(f'{update_query_1}\r\n')
+                                print(update_query_2)
+                                file.write(f'{update_query_2}\r\n')
+            else:
+                print("No Invalid parameter found")
+            df = pd.read_excel(excel_path)
+            # Check if 'POST_STUS_MSG_TXT' column contains 'input string'
+            if df['POST_STUS_MSG_TXT'].str.contains('input string').any():
+                payment_ids = df.loc[df['POST_STUS_MSG_TXT'].str.contains('input string'), 'PAYMENT_ID'].values
+                for payment_id in payment_ids:
+                    query = f"update payment set CREATED_USER_NM='4500014',PAYMENT_STATUS_CD='Settlement_Completed' where PAYMENT_ID in ({payment_id});"
+                    print(query)
+                    file.write(f"{query}\r\n")
+            else:
+                print("No input string found")
 
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
         # Close the file
-        file.close()
+        if file is not None:
+            file.close()
         # Close the connection
         if conn is not None:
             conn.close()

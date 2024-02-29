@@ -147,49 +147,54 @@ def generateHTMLReport():
 
     if 'Blocked_Job' not in sheet_names:
         blocked_jobs.append('Blocked job resolved/No batch job blocked today.')
+    # Check if the file exists
+    pdf_html = ""
+    if os.path.exists('pdf_file.tmp'):
+        # Add content of EPWF Fallout Report pdf to the HTML page
+        # Read the PDF file name from the temporary file
+        with open('pdf_file.tmp', 'r') as f:
+            pdf_file = f.read().strip()
+        # Define the downloads folder
+        downloads_folder = os.path.expanduser('~\\Downloads\\')
+        # Define the full path to the PDF file
+        pdf_file_path = os.path.join(downloads_folder, pdf_file)
 
-    # Add content of EPWF Fallout Report pdf to the HTML page
-    # Read the PDF file name from the temporary file
-    with open('pdf_file.tmp', 'r') as f:
-        pdf_file = f.read().strip()
-    # Define the downloads folder
-    downloads_folder = os.path.expanduser('~\\Downloads\\')
-    # Define the full path to the PDF file
-    pdf_file_path = os.path.join(downloads_folder, pdf_file)
+        # Convert the PDF to DOCX
+        docx_path = pdf_to_docx(pdf_file_path)
 
-    # Convert the PDF to DOCX
-    docx_path = pdf_to_docx(pdf_file_path)
+        # remove the temp file
+        os.remove('pdf_file.tmp')
 
-    # Convert the DOCX to HTML
-    html_content = docx_to_html(docx_path)
+        # Convert the DOCX to HTML
+        html_content = docx_to_html(docx_path)
 
-    # Parse the HTML with BeautifulSoup
-    soup = BeautifulSoup(html_content, 'html.parser')
+        # Parse the HTML with BeautifulSoup
+        soup = BeautifulSoup(html_content, 'html.parser')
 
-    # Find the first <p> tag and add the 'main-heading' class to it
-    main_heading = soup.find('p')
-    main_heading['class'] = 'main-heading'
-    main_heading[
-        'style'] = "text-align: center; margin-top: 20px; margin-bottom: 20px; font-weight: bold; font-family: Arial, sans-serif; font-size: 30px;"
+        # Find the first <p> tag and add the 'main-heading' class to it
+        main_heading = soup.find('p')
+        main_heading['class'] = 'main-heading'
+        main_heading[
+            'style'] = "text-align: center; margin-top: 20px; margin-bottom: 20px; font-weight: bold; font-family: Arial, sans-serif; font-size: 30px;"
 
-    # Find the next <p> tags before the table and add the 'secondary-heading' class to them
-    for p in soup.find_all('p')[1:]:
-        if p.find_next_sibling('table'):
-            p['class'] = 'secondary-heading'
-            p[
-                'style'] = "text-align: center; margin-top: 20px; margin-bottom: 20px; font-weight: bold; font-family: Arial, sans-serif; font-size: 15px;"
+        # Find the next <p> tags before the table and add the 'secondary-heading' class to them
+        for p in soup.find_all('p')[1:]:
+            if p.find_next_sibling('table'):
+                p['class'] = 'secondary-heading'
+                p[
+                    'style'] = "text-align: center; margin-top: 20px; margin-bottom: 20px; font-weight: bold; font-family: Arial, sans-serif; font-size: 15px;"
 
-    # Apply styles to the table elements
-    for table in soup.find_all('table'):
-        table['style'] = "margin-left: auto; margin-right: auto; border-collapse: collapse;"
-    for td in soup.find_all(['td', 'th']):
-        td['style'] = "border: 1px solid black; background-color: white; text-align: center; width: 800px;"
+        # Apply styles to the table elements
+        for table in soup.find_all('table'):
+            table['style'] = "margin-left: auto; margin-right: auto; border-collapse: collapse;"
+        for td in soup.find_all(['td', 'th']):
+            td['style'] = "border: 1px solid black; background-color: white; text-align: center; width: 800px;"
 
-    # Convert the BeautifulSoup object back to a string
-    pdf_html = str(soup)
+        # Convert the BeautifulSoup object back to a string
+        pdf_html = str(soup)
 
-    # Wrap the HTML content in a div
-    pdf_html = f'<div class="pdf-content" style="text-align: center;">{pdf_html}</div>'
+        # Wrap the HTML content in a div
+        pdf_html = f'<div class="pdf-content" style="text-align: center;">{pdf_html}</div>'
 
     # Render the HTML page
     full_page = render_template('falloutReport.html', potential_fallouts=potential_fallouts,

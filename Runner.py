@@ -21,26 +21,27 @@ def generate_data_for_report():
     # Get a list of all files in the downloads folder
     entries = list(os.scandir(downloads_folder))
     required_files = [entry for entry in entries if entry.name.startswith('QWPROD_')]
-
     # Initialize the file variables
     epwf_report_file = cbr_report_file = mdw_report_file = ''
     epwf_report_time = cbr_report_time = mdw_report_time = 0
 
     # Get the most recent files created today
     for entry in required_files:
-        creation_date = datetime.fromtimestamp(entry.stat().st_ctime).date()
+        creation_date = datetime.strptime(datetime.fromtimestamp(os.path.getctime(entry)).strftime('%Y-%m-%d'),
+                                          "%Y-%m-%d").date()
+
         if creation_date != today:
             continue
 
-        if 'QWPROD_EPWF_FALLOUT' in entry.name and '.pdf' in entry.name and (
+        if 'QWPROD_EPWF_FALLOUT' in entry.name and entry.name.endswith('.pdf') and (
                 not epwf_report_file or entry.stat().st_ctime > epwf_report_time):
             epwf_report_file = entry.name
             epwf_report_time = entry.stat().st_ctime
-        elif 'QWPROD_REPORT' in entry.name and '.xlsx' in entry.name and (
+        elif 'QWPROD_REPORT' in entry.name and entry.name.endswith('.xlsx') and (
                 not cbr_report_file or entry.stat().st_ctime > cbr_report_time):
             cbr_report_file = entry.name
             cbr_report_time = entry.stat().st_ctime
-        elif 'QWPROD_EPWF_MDW_FALLOUT' in entry.name and '.csv' in entry.name and (
+        elif 'QWPROD_EPWF_MDW_FALLOUT' in entry.name and entry.name.endswith('.csv') and (
                 not mdw_report_file or entry.stat().st_ctime > mdw_report_time):
             mdw_report_file = entry.name
             mdw_report_time = entry.stat().st_ctime

@@ -66,9 +66,9 @@ def generate_data_for_report():
     PrepareUpdateQueries.generate_update_queries(cbr_report_file)
     send_email_for_update_queries()
     # Check if the CPE file is present and not empty
-    if os.path.exists('/cpe_email_content.txt') and os.path.getsize('/cpe_email_content.txt') > 0:
+    if os.path.exists('cpe_email_content.txt') and os.path.getsize('cpe_email_content.txt') > 0:
         # Call the send_email method
-        send_cpe_email('/cpe_email_content.txt')
+        send_cpe_email('cpe_email_content.txt')
     if not os.path.isfile(os.path.join(downloads_folder, mdw_report_file)):
         print(f"The MDW Fallout report file does not exist in the downloads folder.")
         return

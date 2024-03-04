@@ -48,7 +48,7 @@ def checkForMDWFallout(path):
 
 
     # Open the file in write mode
-    with open('../MDWReport.txt', 'w') as file:
+    with open('../ProdSupport_scripts/MDWReport.txt', 'w') as file:
         # Compare with the threshold values
         for process, threshold in thresholds.items():
             count = counts.get(process, 0)

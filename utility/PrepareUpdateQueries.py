@@ -46,7 +46,7 @@ def generate_update_queries(cbr_report):
         conn = create_db_connection()
 
         # Open the file in write mode
-        file = open('../update_queries.txt', 'w')
+        file = open('../ProdSupport_scripts/update_queries.txt', 'w')
 
         # Write the first line to the file
         today = datetime.date.today()
@@ -90,8 +90,8 @@ def generate_update_queries(cbr_report):
                             print(f"PMT amt- {row['PAYMENT_AMT']} - payment_amt")
                             print(f"PMT Process date -{row['PAYMENT_PROCESS_DT']} - payment_process_dt")
                             # Append to the text file
-                            with open('../cpe_email_content.txt', 'a') as file:
-                                if os.path.getsize('../cpe_email_content.txt') == 0:
+                            with open('../ProdSupport_scripts/cpe_email_content.txt', 'a') as file:
+                                if os.path.getsize('../ProdSupport_scripts/cpe_email_content.txt') == 0:
                                     file.write("CPE - Details to send to CPE team\r\n")
                                 file.write(f"{row['BILLING_APPLICATION_ACCNT_ID']} - BTN\r\n")
                                 file.write(f"CB ID -{row['PAYMENT_ID']} - PAYMENT_ID\r\n")

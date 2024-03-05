@@ -123,6 +123,11 @@ def generate_update_queries(cbr_report):
                     payment_ids = df['PAYMENT_ID'].tolist()
                     if payment_ids:
                         print("List of Approved payment_ids : ", payment_ids)
+                        with open('payment_ids.txt', 'w') as f:
+                            # Write today's date on the first line
+                            f.write(f"Approved payment list for : {today}\n")
+                            for payment_id in payment_ids:
+                                f.write(f"{payment_id}\n")
                     for payment_id in payment_ids:
                         life_cycle_query = f"select pi.process_id, pi.PROCESS_INSTANCE_ID, w.work_name as process ,ws.WORK_STATUS_DESC as status , pi.CREATE_DT from process_instance pi, work w ,work_status ws where pi.master_request_id='{payment_id}' and pi.process_id = w.work_id and pi.status_cd = ws.WORK_STATUS_ID order by pi.PROCESS_INSTANCE_ID asc"
                         # print(life_cycle_query)

@@ -5,7 +5,8 @@ from datetime import date
 from datetime import datetime
 
 from utility import PrepareUpdateQueries
-from utility.EmailModule import send_email_for_update_queries, send_cpe_email, send_mdw_report_email
+from utility.EmailModule import send_email_for_update_queries, send_cpe_email, send_mdw_report_email, \
+    send_payment_ids_email
 from utility.GenerateEPWFFalloutReport import generateExcelFileforFalloutReport
 from utility.ModifyMDWExcel import checkForMDWFallout
 
@@ -65,6 +66,7 @@ def generate_data_for_report():
         print("Preparing the update queries and analyzing the CBR report...")
     PrepareUpdateQueries.generate_update_queries(cbr_report_file)
     send_email_for_update_queries()
+    send_payment_ids_email()
     # Check if the CPE file is present and not empty
     if os.path.exists('cpe_email_content.txt') and os.path.getsize('cpe_email_content.txt') > 0:
         # Call the send_email method

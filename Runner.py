@@ -65,11 +65,22 @@ def generate_data_for_report():
     else:
         print("Preparing the update queries and analyzing the CBR report...")
     PrepareUpdateQueries.generate_update_queries(cbr_report_file)
-    send_email_for_update_queries()
-    send_payment_ids_email()
+    # Check if the file exists
+    if os.path.exists('update_queries.txt'):
+        # Open the file and read its contents
+        file = open('update_queries.txt', 'r')
+        content = file.read()
+        file.close()  # Close the file manually
+        # Check if the word "update" is present in the file
+        if 'update' in content:
+            send_email_for_update_queries()
+        else:
+            print("No update queries to send for execution.")
+            os.remove('update_queries.txt')
+    if os.path.exists('payment_ids.txt') and os.path.getsize('payment_ids.txt') > 0:
+        send_payment_ids_email()
     # Check if the CPE file is present and not empty
     if os.path.exists('cpe_email_content.txt') and os.path.getsize('cpe_email_content.txt') > 0:
-        # Call the send_email method
         send_cpe_email('cpe_email_content.txt')
     if not os.path.isfile(os.path.join(downloads_folder, mdw_report_file)):
         print(f"The MDW Fallout report file does not exist in the downloads folder.")
@@ -77,7 +88,10 @@ def generate_data_for_report():
     else:
         print("Checking for MDW Fallout...")
         checkForMDWFallout(mdw_report_file)
-        send_mdw_report_email()
+        if os.path.exists('MDWReport.txt') and os.path.getsize('MDWReport.txt') > 0:
+            send_mdw_report_email()
+        else:
+            print("MDW Report has no process that is exceeding the threshold. No email sent.")
 
 
 # print start time

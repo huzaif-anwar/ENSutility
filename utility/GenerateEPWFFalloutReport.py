@@ -17,7 +17,7 @@ def run_query_and_create_table(query, baseline, conn):
     column_names = [desc[0] for desc in curs.description]
     df = pd.DataFrame(rows, columns=column_names)
     if df.iloc[:, 0].sum() > baseline:  # Compare the sum of the first column values with the baseline
-        print("Total count - " + str(df.iloc[:, 0].sum()))
+        print("Total count - " + str(df.iloc[:, 0].sum()) + " - exceeding the Baseline -> Will be added in the report.")
         return df
     else:
         return None
@@ -48,8 +48,6 @@ def generateExcelFileforFalloutReport():
     if os.path.exists("../ProdSupport_scripts/output.xlsx"):
         # If it does, delete it
         os.remove("../ProdSupport_scripts/output.xlsx")
-    else:
-        print("The file does not exist")
 
     # Create a Pandas Excel writer using XlsxWriter as the engine.
     writer = pd.ExcelWriter('../ProdSupport_scripts/output.xlsx', engine='xlsxwriter')
@@ -68,10 +66,8 @@ def generateExcelFileforFalloutReport():
 
         # Iterate over the dictionary and run each query
         for query_name, baseline in queries_and_baselines.items():
-            print(query_name)
-            print("Baseline - " + str(baseline))
+            print("Checking for " + query_name + " with Baseline of " + str(baseline) + ".")
             query = queryconfig.get('Fallout', query_name)
-            print(query)
             df = run_query_and_create_table(query, baseline, conn)
             if df is not None:
                 # Convert Java string objects to Python string objects
@@ -80,9 +76,8 @@ def generateExcelFileforFalloutReport():
                 df.to_excel(writer, sheet_name=sheet_name, index=False)
 
         # code to check for blocked jobs
-        print("Blocked_Job")
         query = queryconfig.get('BlockedBatchJob', 'Blocked_Job')
-        print(query)
+        print("Checking for Blocked Jobs.")
         with conn.cursor() as curs:
             curs.execute(query)
             rows = curs.fetchall()
@@ -90,6 +85,7 @@ def generateExcelFileforFalloutReport():
 
         df = pd.DataFrame(rows, columns=column_names)
         if not df.empty:
+            print("Blocked Jobs found. -> Will be added in the report.")
             # Select the first two columns
             df = df.iloc[:, :2]
             # Convert Java string objects to Python string objects

@@ -6,3 +6,5 @@ numpy==1.25.0
 pandas==2.2.0
 pdf2docx==0.5.8
 jPype1==1.5.0
+xlsxwriter
+openpyxl

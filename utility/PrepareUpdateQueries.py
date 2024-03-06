@@ -50,7 +50,7 @@ def generate_update_queries(cbr_report):
 
         # Write the first line to the file
         today = datetime.date.today()
-        file.write(f'Queries to run in production for {today}\r\n\r\n')
+        file.write(f'Queries to run in production for {today}\r\n')
 
         queryconfig = configparser.ConfigParser()
         queryconfig.read('resources/Prepupdatequery.properties')
@@ -149,7 +149,7 @@ def generate_update_queries(cbr_report):
                                 file.write(f"{update_query}\r\n")
                             else:
                                 print(f"Payment ID: {payment_id} has not completed the lifecycle")
-                                print(lifecycle_df[['PROCESS', 'STATUS', 'PROCESS_INSTANCE_ID']].to_string())
+                                # print(lifecycle_df[['PROCESS', 'STATUS', 'PROCESS_INSTANCE_ID']].to_string())
 
         # Check if the cbr_report is None or empty
         if not cbr_report:

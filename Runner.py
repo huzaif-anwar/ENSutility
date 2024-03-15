@@ -38,7 +38,7 @@ def generate_data_for_report():
                 not epwf_report_file or entry.stat().st_ctime > epwf_report_time):
             epwf_report_file = entry.name
             epwf_report_time = entry.stat().st_ctime
-        elif 'QWPROD_REPORT' in entry.name and entry.name.endswith('.xlsx') and (
+        elif 'QWPROD_ENS' in entry.name and entry.name.endswith('.xlsx') and (
                 not cbr_report_file or entry.stat().st_ctime > cbr_report_time):
             cbr_report_file = entry.name
             cbr_report_time = entry.stat().st_ctime

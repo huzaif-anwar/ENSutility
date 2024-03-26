@@ -72,7 +72,7 @@ def generate_data_for_report():
         content = file.read()
         file.close()  # Close the file manually
         # Check if the word "update" is present in the file
-        if 'update' in content:
+        if 'update' in content.lower():
             send_email_for_update_queries()
         else:
             print("No update queries to send for execution.")

@@ -147,6 +147,9 @@ def generateHTMLReport():
 
     if 'Blocked_Job' not in sheet_names:
         blocked_jobs.append('Blocked job resolved/No batch job blocked today.')
+
+    # Close the Excel file
+    xls.close()
     # Check if the file exists
     pdf_html = ""
     if os.path.exists('pdf_file.tmp'):
@@ -161,9 +164,6 @@ def generateHTMLReport():
 
         # Convert the PDF to DOCX
         docx_path = pdf_to_docx(pdf_file_path)
-
-        # remove the temp file
-        os.remove('pdf_file.tmp')
 
         # Convert the DOCX to HTML
         html_content = docx_to_html(docx_path)
@@ -197,9 +197,11 @@ def generateHTMLReport():
         pdf_html = f'<div class="pdf-content" style="text-align: center;">{pdf_html}</div>'
 
     # Render the HTML page
+    print("Rendering the HTML page...")
     full_page = render_template('falloutReport.html', potential_fallouts=potential_fallouts,
                                 specific_sheets=specific_sheets, specific_sheets_S=specific_sheets_S,
                                 blocked_jobs=blocked_jobs, pdf_html=pdf_html)
+    print("Sending the email...")
     send_email(full_page)
     return full_page
 

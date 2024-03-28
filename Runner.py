@@ -113,3 +113,6 @@ process = subprocess.Popen([python_path, "GenerateHTMLfile.py"], stdout=subproce
 # Print the output from the Flask application in real-time
 for line in iter(process.stdout.readline, b''):
     print(line.decode().strip())
+
+# Wait for the process to complete and then close it
+stdout, stderr = process.communicate()

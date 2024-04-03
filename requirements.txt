@@ -1,0 +1,11 @@
+beautifulsoup4==4.12.3
+Flask==3.0.2
+JayDeBeApi==1.2.3
+JPype1==1.5.0
+JPype1==1.5.0
+mammoth==1.6.0
+numpy==1.25.0
+pandas==2.2.1
+pdf2docx==0.5.8
+xlsxwriter==3.1.9
+openpyxl==3.1.2

@@ -129,22 +129,23 @@ def generate_update_queries(cbr_report):
                             for payment_id in payment_ids:
                                 f.write(f"{payment_id}\n")
                     for payment_id in payment_ids:
-                        life_cycle_query = f"select pi.process_id, pi.PROCESS_INSTANCE_ID, w.work_name as process ,ws.WORK_STATUS_DESC as status , pi.CREATE_DT from process_instance pi, work w ,work_status ws where pi.master_request_id='{payment_id}' and pi.process_id = w.work_id and pi.status_cd = ws.WORK_STATUS_ID order by pi.PROCESS_INSTANCE_ID asc"
+                        life_cycle_query = f"select pi.process_id, pi.PROCESS_INSTANCE_ID, w.work_name as process ," \
+                                           f"ws.WORK_STATUS_DESC as status , pi.CREATE_DT from process_instance pi, " \
+                                           f"work w ,work_status ws where pi.master_request_id='{payment_id}' and " \
+                                           f"pi.process_id = w.work_id and pi.status_cd = ws.WORK_STATUS_ID order by " \
+                                           f"pi.PROCESS_INSTANCE_ID asc"
                         # print(life_cycle_query)
                         lifecycle_df = run_query(life_cycle_query, conn)
                         if lifecycle_df is not None:
                             if len(lifecycle_df) > 3 and all(lifecycle_df['STATUS'] == 'Completed'):
-                                update_query = f"""
-                                    UPDATE payment
-                                    SET PAYMENT_STATUS_CD = (
-                                        case 
-                                            when (VENDOR_CD =  'JPMC' OR VENDOR_CD = 'WELLSFARGO' OR ( VENDOR_CD =  'SPEEDPAY' and  PAYMENT_SCHEDULE_CD = 'Scheduled')) then 'Capture_Ready'
-                                            when VENDOR_CD =  'SPEEDPAY' and  PAYMENT_SCHEDULE_CD = 'OneTime' then 'Settlement_Completed'
-                                            when VENDOR_CD =  'OPA' then 'Session_Canceled'
-                                            when VENDOR_CD = 'PAYPAL' and PAYMENT_SCHEDULE_CD = 'OneTime' then 'Settlement_Completed'
-                                        end)
-                                    WHERE PAYMENT_ID in ({payment_id});
-                                    """
+                                update_query = f"UPDATE payment SET PAYMENT_STATUS_CD = (case when (VENDOR_CD =  " \
+                                               f"'JPMC' OR VENDOR_CD = 'WELLSFARGO' OR ( VENDOR_CD =  'SPEEDPAY' and  " \
+                                               f"PAYMENT_SCHEDULE_CD = 'Scheduled')) then 'Capture_Ready' when " \
+                                               f"VENDOR_CD =  'SPEEDPAY' and  PAYMENT_SCHEDULE_CD = 'OneTime' then " \
+                                               f"'Settlement_Completed' when VENDOR_CD =  'OPA' then " \
+                                               f"'Session_Canceled' when VENDOR_CD = 'PAYPAL' and PAYMENT_SCHEDULE_CD " \
+                                               f"= 'OneTime' then 'Settlement_Completed' end) WHERE PAYMENT_ID in (" \
+                                               f"{payment_id});"
                                 print(update_query)
                                 file.write(f"{update_query}\r\n")
                             else:

@@ -90,19 +90,19 @@ def generate_update_queries(cbr_report):
                             print(f"PMT amt- {row['PAYMENT_AMT']} - payment_amt")
                             print(f"PMT Process date -{row['PAYMENT_PROCESS_DT']} - payment_process_dt")
                             # Append to the text file
-                            with open('../ProdSupport_scripts/cpe_email_content.txt', 'a') as file:
+                            with open('../ProdSupport_scripts/cpe_email_content.txt', 'a') as cpefile:
                                 if os.path.getsize('../ProdSupport_scripts/cpe_email_content.txt') == 0:
-                                    file.write("CPE - Details to send to CPE team\r\n")
-                                file.write(f"{row['BILLING_APPLICATION_ACCNT_ID']} - BTN\r\n")
-                                file.write(f"CB ID -{row['PAYMENT_ID']} - PAYMENT_ID\r\n")
-                                file.write(f"Original Pmt-{row['ASSOCIATED_PAYMENT_ID']} -ASSOCIATED_PAYMENT_ID\r\n")
-                                file.write(f"PMT amt- {row['PAYMENT_AMT']} - payment_amt\r\n")
-                                file.write(f"PMT Process date -{row['PAYMENT_PROCESS_DT']} - payment_process_dt\r\n\r\n")
+                                    cpefile.write("CPE - Details to send to CPE team\r\n")
+                                cpefile.write(f"{row['BILLING_APPLICATION_ACCNT_ID']} - BTN\r\n")
+                                cpefile.write(f"CB ID -{row['PAYMENT_ID']} - PAYMENT_ID\r\n")
+                                cpefile.write(f"Original Pmt-{row['ASSOCIATED_PAYMENT_ID']} -ASSOCIATED_PAYMENT_ID\r\n")
+                                cpefile.write(f"PMT amt- {row['PAYMENT_AMT']} - payment_amt\r\n")
+                                cpefile.write(f"PMT Process date -{row['PAYMENT_PROCESS_DT']} - payment_process_dt\r\n")
 
-                            # Generate the update query for each record
-                            update_query = f"update payment set payment_status_cd='Posted' where payment_id in ({row['PAYMENT_ID']}) and BILLING_APPLICATION_CD='CPE' and TRANSACTION_TYPE_CD='Chargeback';"
-                            print('--Post confirmation from CPE team-- ' + update_query)
-                            file.write(f'--Post confirmation from CPE team-- {update_query}\r\n')
+                                # Generate the update query for each record
+                                update_query = f"update payment set payment_status_cd='Posted' where payment_id in ({row['PAYMENT_ID']}) and BILLING_APPLICATION_CD='CPE' and TRANSACTION_TYPE_CD='Chargeback';"
+                                print('--Post confirmation from CPE team-- ' + update_query)
+                                cpefile.write(f'--Post confirmation from CPE team-- {update_query}\r\n\n')
                         elif str(row['BILLING_APPLICATION_CD']).startswith('CRIS') and len(
                                 row['BILLING_APPLICATION_ACCNT_ID']) < 13:
                             select_query = f"select * from payment where PAYMENT_CREATE_DT>= SYSDATE -400 and CREATED_DTTM>SYSDATE-400 and BILLING_APPLICATION_ACCNT_ID like '%{row['BILLING_APPLICATION_ACCNT_ID']}%' order by payment_process_dt desc"

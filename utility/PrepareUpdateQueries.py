@@ -42,6 +42,7 @@ def create_db_connection():
 
 def generate_update_queries(cbr_report):
     conn = None
+    file = None
     try:
         conn = create_db_connection()
 
@@ -109,9 +110,14 @@ def generate_update_queries(cbr_report):
                             # print(select_query)
                             select_df = run_query(select_query, conn)
                             if select_df is not None and len(select_df) > 1:
-                                second_row = select_df.iloc[1]
-                                if len(second_row['BILLING_APPLICATION_ACCNT_ID']) == 13:
-                                    update_query = f"update payment set BILLING_APPLICATION_ACCNT_ID = '{second_row['BILLING_APPLICATION_ACCNT_ID']}', LAST_MODIFIED_DTTM = sysdate, LAST_MODIFIED_USER_NM = 'ac65760' where payment_id = {row['PAYMENT_ID']} and BILLING_APPLICATION_ACCNT_ID='{row['BILLING_APPLICATION_ACCNT_ID']}';"
+                                for _, second_row in select_df.iterrows():
+                                    if len(second_row['BILLING_APPLICATION_ACCNT_ID']) == 13:
+                                        update_query = f"update payment set BILLING_APPLICATION_ACCNT_ID = '{second_row['BILLING_APPLICATION_ACCNT_ID']}', LAST_MODIFIED_DTTM = sysdate, LAST_MODIFIED_USER_NM = 'ac65760' where payment_id = {row['PAYMENT_ID']} and BILLING_APPLICATION_ACCNT_ID='{row['BILLING_APPLICATION_ACCNT_ID']}';"
+                                        print(update_query)
+                                        file.write(f"{update_query}\r\n")
+                                        break
+                                else:
+                                    update_query = f"update payment set payment_status_cd='Pending_Correction' ,LAST_MODIFIED_DTTM = sysdate, LAST_MODIFIED_USER_NM = 'AC65760' where  payment_id = {row['PAYMENT_ID']} and BILLING_APPLICATION_ACCNT_ID='{row['BILLING_APPLICATION_ACCNT_ID']}';"
                                     print(update_query)
                                     file.write(f"{update_query}\r\n")
                             else:

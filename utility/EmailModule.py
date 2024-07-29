@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime
 
-from_email_address = "epwfbatch@centurylink.com"
+from_email_address = "epwfbatch@lumen.com"
 fallout_report_recipients = "TeamPayOneA2@lumen.com, TeamPayTwo@lumen.com, pmt_system_fallout@lumen.com, " \
                 "PMT_SYS_NOTIFICATION@lumen.com, EPWFPROD@lumen.com"
 update_queries_recipients = "Girish.M@lumen.com, Emmanuel.Bandi@lumen.com, Vikas.Sharma@lumen.com, " \
@@ -15,11 +15,15 @@ payment_ids_recipients = "TeamPayOneA2@lumen.com"
 
 test_recipients = "anvesh.kashyap@lumen.com"
 
+# Uncomment the below line to send the email to the test recipients
+# fallout_report_recipients = update_queries_recipients = cpe_recipients = mdw_report_recipients = payment_ids_recipients = test_recipients
+
 # Get current date
 current_date = datetime.now()
 
 # Format date as YYYY/MM/DD
 formatted_date = current_date.strftime("%Y/%m/%d")
+
 
 def send_email(html_content):
     # Set up the SMTP server

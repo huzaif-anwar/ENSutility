@@ -52,7 +52,8 @@ def generate_data_for_report():
 
     # Check if the files exist in the downloads folder
     if not os.path.isfile(os.path.join(downloads_folder, epwf_report_file)):
-        print(f"The EPWF Fallout Report file does not exist in the downloads folder. A copy of Report file will not be attached at the end of the report.")
+        print(f"The EPWF Fallout Report file does not exist in the downloads folder. A copy of Report file will not "
+              f"be attached at the end of the report.")
     else:
         # Write the PDF file name to a temporary file
         with open('pdf_file.tmp', 'w') as f:

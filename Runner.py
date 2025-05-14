@@ -1,119 +1,220 @@
+import configparser
+import oracledb
+import json
 import os
-import subprocess
-import sys
-from datetime import date
 from datetime import datetime
+import re
+import pytz
+from encrypt import is_encrypted, decrypt_string, load_api_config
+import logging
+from sendrequest import send_requests_and_save  # Import the function from sendrequest.py
 
-from utility import PrepareUpdateQueries
-from utility.EmailModule import send_email_for_update_queries, send_cpe_email, send_mdw_report_email, \
-    send_payment_ids_email
-from utility.GenerateEPWFFalloutReport import generateExcelFileforFalloutReport
-from utility.ModifyMDWExcel import checkForMDWFallout
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger(__name__)
 
+def parse_jdbc_url(jdbc_url):
+    """Parse JDBC URL to extract host, port, and service name."""
+    pattern = r'jdbc:oracle:thin:@([^:]+):(\d+)/(\w+)'
+    match = re.match(pattern, jdbc_url)
+    if match:
+        host, port, service_name = match.groups()
+        return host, port, service_name
+    raise ValueError(f"Invalid JDBC URL format: {jdbc_url}")
 
-def generate_data_for_report():
-    print("Please ensure the EPWF & MDW Fallout report and CBR Report are downloaded in the downloads folder.")
+def load_db_config(config_file):
+    """Load database configuration from properties file."""
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    default = config['DEFAULT']
+    return {
+        'connection_string': default['DBConnectionString'],
+        'username': default['DBUserName'],
+        'password': default['DBPassword']
+    }
 
-    # Get today's date
-    today = date.today()
+def load_query(query_file):
+    """Load SQL query from Query.properties file."""
+    config = configparser.ConfigParser()
+    config.read(query_file)
+    return config['DEFAULT']['PaymentQuery']
 
-    # Check if the files exist
-    downloads_folder = os.path.expanduser('~\\Downloads\\')
-    # Get a list of all files in the downloads folder
-    entries = list(os.scandir(downloads_folder))
-    required_files = [entry for entry in entries if entry.name.startswith('QWPROD_')]
-    # Initialize the file variables
-    epwf_report_file = cbr_report_file = mdw_report_file = ''
-    epwf_report_time = cbr_report_time = mdw_report_time = 0
+def execute_query(connection_string, username, password, query):
+    """Execute the query and return results with non-null VENDOR_PAYMENT_ID where rule exists."""
+    try:
+        host, port, service_name = parse_jdbc_url(connection_string)
+        connection = oracledb.connect(
+            user=username,
+            password=password,
+            host=host,
+            port=port,
+            service_name=service_name
+        )
+        cursor = connection.cursor()
+        cursor.execute(query)
+        columns = [col[0] for col in cursor.description]
+        results = []
+        for row in cursor:
+            row_dict = {columns[i]: value for i, value in enumerate(row)}
+            results.append(row_dict)
+        cursor.close()
+        connection.close()
+        return results
+    except oracledb.DatabaseError as e:
+        logger.error(f"Database error: {e}")
+        return []
+    except ValueError as e:
+        logger.error(f"Configuration error: {e}")
+        return []
 
-    # Get the most recent files created today
-    for entry in required_files:
-        creation_date = datetime.strptime(datetime.fromtimestamp(os.path.getctime(entry)).strftime('%Y-%m-%d'),
-                                          "%Y-%m-%d").date()
-
-        if creation_date != today:
-            continue
-
-        if 'QWPROD_EPWF_FALLOUT' in entry.name and entry.name.endswith('.pdf') and (
-                not epwf_report_file or entry.stat().st_ctime > epwf_report_time):
-            epwf_report_file = entry.name
-            epwf_report_time = entry.stat().st_ctime
-        elif 'QWPROD_ENS' in entry.name and entry.name.endswith('.xlsx') and (
-                not cbr_report_file or entry.stat().st_ctime > cbr_report_time):
-            cbr_report_file = entry.name
-            cbr_report_time = entry.stat().st_ctime
-        elif 'QWPROD_EPWF_MDW_FALLOUT' in entry.name and entry.name.endswith('.csv') and (
-                not mdw_report_file or entry.stat().st_ctime > mdw_report_time):
-            mdw_report_file = entry.name
-            mdw_report_time = entry.stat().st_ctime
-    print(f"EPWF report file: {epwf_report_file}")
-    print(f"CBR report file: {cbr_report_file}")
-    print(f"MDW report file: {mdw_report_file}")
-
-    # Check if the files exist in the downloads folder
-    if not os.path.isfile(os.path.join(downloads_folder, epwf_report_file)):
-        print(f"The EPWF Fallout Report file does not exist in the downloads folder. A copy of Report file will not "
-              f"be attached at the end of the report.")
+def create_json_request(record, index, api_config):
+    """Create a JSON request in the specified format."""
+    eastern = pytz.timezone('US/Eastern')
+    current_time = datetime.now(eastern)
+    send_timestamp = current_time.isoformat()
+    process_date = current_time.strftime('%Y-%m-%dT00:00:00')
+    
+    business_nm = record.get('BUSINESS_NM')
+    email = record.get('EMAIL_ADRS')
+    first_nm = record.get('FIRST_NM')
+    
+    if email and is_encrypted(email):
+        email = decrypt_string(email, api_config)
+    
+    if business_nm is None and first_nm is None:
+        business_name = '.'
     else:
-        # Write the PDF file name to a temporary file
-        with open('pdf_file.tmp', 'w') as f:
-            f.write(epwf_report_file)
-    print("Generating the report...")
-    generateExcelFileforFalloutReport()
-    if not os.path.isfile(os.path.join(downloads_folder, cbr_report_file)):
-        print(f"The CBR Report file does not exist in the downloads folder.")
-        print("Preparing the update queries without analyzing the CBR report...")
-    else:
-        print("Preparing the update queries and analyzing the CBR report...")
-    PrepareUpdateQueries.generate_update_queries(cbr_report_file)
-    # Check if the file exists
-    if os.path.exists('update_queries.txt'):
-        # Open the file and read its contents
-        file = open('update_queries.txt', 'r')
-        content = file.read()
-        file.close()  # Close the file manually
-        # Check if the word "update" is present in the file
-        if 'update' in content.lower():
-            send_email_for_update_queries()
-        else:
-            print("No update queries to send for execution.")
-            os.remove('update_queries.txt')
-    if os.path.exists('payment_ids.txt') and os.path.getsize('payment_ids.txt') > 0:
-        send_payment_ids_email()
-    # Check if the CPE file is present and not empty
-    if os.path.exists('cpe_email_content.txt') and os.path.getsize('cpe_email_content.txt') > 0:
-        send_cpe_email('cpe_email_content.txt')
-    if not os.path.isfile(os.path.join(downloads_folder, mdw_report_file)):
-        print(f"The MDW Fallout report file does not exist in the downloads folder.")
+        business_name = first_nm if business_nm is None else business_nm
+
+    card_type = record.get('CARD_TYPE_CD', '')
+    card_type = card_type.upper() if card_type else ''
+
+    request = {
+        "headerInfo": {
+            "requestId": str(134255678 + index),
+            "sendTimeStamp": send_timestamp,
+            "srcApplicationCd": record.get('SOURCE_APPLICATION_CD', ''),
+            "inputChannelCd": record.get('INPUT_CHANNEL_CD', '')
+        },
+        "requestInfo": {
+            "paymentInfo": {
+                "maskedAccountNumber": record.get('MASKED_PAYMENT_ACCNT_NO', ''),
+                "bankAccountType": "",
+                "cardType": card_type,
+                "customerEmail": email,
+                "convenienceFeeAmount": record.get('CONVENIENCE_FEE_AMT', ''),
+                "paymentAmount": float(record.get('PAYMENT_AMT', 0.0)),
+                "paymentProcessDate": process_date,
+                "paymentMethodCd": record.get('PAYMENT_METHOD_CD', ''),
+                "paymentTypeCd": record.get('PAYMENT_TYPE_CD', ''),
+                "paymentSubmittedBy": record.get('CREATED_APPLICATION_CD', ''),
+                "customerType": record.get('CUSTOMER_TYPE_CD', ''),
+                "paymentScheduleCd": record.get('PAYMENT_SCHEDULE_CD', ''),
+                "orderOrInvoiceNumber": record.get('ORDER_NO', ''),
+                "businessName": business_name,
+                "customerFirstName": record.get('FIRST_NM', ''),
+                "customerLastName": record.get('LAST_NM', ''),
+                "billingApplicationCd": record.get('BILLING_APPLICATION_CD', 'ENS'),
+                "billingAccountNumber": record.get('BILLING_APPLICATION_ACCNT_ID', ''),
+                "vendorPaymentId": record.get('VENDOR_PAYMENT_ID', ''),
+                "initiationIPAddress": "172.26.50.59",
+                "checkId": record.get('CHECK_NO', ''),
+                "payerFirstName": record.get('PAYER_FIRST_NM', ''),
+                "payerLastName": record.get('PAYER_LAST_NM', ''),
+                "currencyCd": "USD"
+            }
+        }
+    }
+    return request
+
+def save_to_json_file(records, output_file, api_config):
+    """Save records as JSON requests to a text file."""
+    try:
+        with open(output_file, 'w') as f:
+            for index, record in enumerate(records):
+                json_request = json.dumps(create_json_request(record, index, api_config))
+                f.write(json_request + '\n')
+        logger.info(f"JSON requests saved to {output_file}")
+    except Exception as e:
+        logger.error(f"Error writing to file: {e}")
+
+def save_update_queries(queries, output_file):
+    """Save UPDATE queries to a text file."""
+    try:
+        with open(output_file, 'w') as f:
+            for query in queries:
+                f.write(query + '\n')
+        logger.info(f"UPDATE queries saved to {output_file}")
+    except Exception as e:
+        logger.error(f"Error writing UPDATE queries to {output_file}: {e}")
+
+def main():
+    # Paths
+    config_file = os.path.join('resources', 'DB-config-prod.properties')
+    query_file = os.path.join('resources', 'Query.properties')
+    api_config_file = os.path.join('resources', 'postpaymentapi.properties')
+    requests_file = 'payment_requests.txt'
+    update_queries_file = 'update_queries.txt'
+    output_file = 'payment_requests_responses.txt'
+    
+    # Load configuration
+    if not os.path.exists(config_file):
+        logger.error(f"Config file {config_file} not found.")
         return
+    
+    if not os.path.exists(query_file):
+        logger.error(f"Query file {query_file} not found.")
+        return
+    
+    if not os.path.exists(api_config_file):
+        logger.error(f"API config file {api_config_file} not found.")
+        return
+    
+    config = load_db_config(config_file)
+    query = load_query(query_file)
+    api_config = load_api_config(api_config_file)
+    
+    # Execute query
+    records = execute_query(
+        config['connection_string'],
+        config['username'],
+        config['password'],
+        query
+    )
+    
+    if not records:
+        logger.info("No records found with non-null VENDOR_PAYMENT_ID where VendorForPayment rule exists.")
+        return
+    
+    # Generate and display UPDATE queries
+    logger.info("\nGenerated UPDATE Queries:")
+    logger.info("------------------------")
+    update_queries = [
+        f"UPDATE payment SET PAYMENT_STATUS_CD = 'Settlement_Completed' WHERE PAYMENT_ID = '{record['PAYMENT_ID']}';" 
+        for record in records
+    ]
+    for query in update_queries:
+        logger.info(query)
+    
+    # Save UPDATE queries to file
+    save_update_queries(update_queries, update_queries_file)
+    
+    # Save JSON requests (needed for sending later if confirmed)
+    save_to_json_file(records, requests_file, api_config)
+    
+    # Prompt user for confirmation
+    print("\nDo you want to update these records in the database and send POST requests? (y/n)")
+    response = input().strip().lower()
+    
+    if response == 'y':
+        # Send POST requests and save requests with responses
+        send_requests_and_save(api_config_file, requests_file, output_file)
     else:
-        print("Checking for MDW Fallout...")
-        checkForMDWFallout(mdw_report_file)
-        if os.path.exists('MDWReport.txt') and os.path.getsize('MDWReport.txt') > 0:
-            send_mdw_report_email()
-        else:
-            print("MDW Report has no process that is exceeding the threshold. No email sent.")
+        logger.info("Update and request sending cancelled.")
 
-
-# print start time
-starttime = datetime.now()
-print("Start time: ", starttime)
-generate_data_for_report()
-# print end time
-endtime = datetime.now()
-print("End time: ", endtime)
-# print total time taken in minutes
-total_time = (endtime - starttime).total_seconds() / 60
-print("Total time taken: ", total_time, "minutes")
-# Path to the Python interpreter in your virtual environment
-# python_path = "C:/Users/ac65760/PycharmProjects/ProdSupport_scripts/venv/Scripts/python.exe"
-python_path = sys.executable
-# Run GenerateHTMLFile.py
-process = subprocess.Popen([python_path, "GenerateHTMLfile.py"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-# Print the output from the Flask application in real-time
-for line in iter(process.stdout.readline, b''):
-    print(line.decode().strip())
-
-# Wait for the process to complete and then close it
-stdout, stderr = process.communicate()
+if __name__ == "__main__":
+    main()
